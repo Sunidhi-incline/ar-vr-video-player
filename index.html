@@ -3,13 +3,6 @@
 <head>
   <title>AR/VR Video Experience</title>
   <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      if(/Android|iPhone|iPad/i.test(navigator.userAgent)) {
-        document.querySelector('[ar-button]').setAttribute('visible', 'true');
-      }
-    });
-  </script>
   <style>
     body { margin: 0; overflow: hidden; }
     .ar-prompt { 
@@ -21,14 +14,45 @@
       font-family: Arial; 
       text-shadow: 0 0 5px black;
     }
+    #nativeControls {
+      position: absolute;
+      left: 50%;
+      bottom: 40px;
+      transform: translateX(-50%);
+      z-index: 10;
+      background: rgba(0,0,0,0.4);
+      padding: 8px 16px;
+      border-radius: 8px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    #nativeControls button {
+      background: #222;
+      color: #fff;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+    }
   </style>
 </head>
 <body>
+  <!-- Native controls for play/pause -->
+  <div id="nativeControls">
+    <button id="playBtn">Play</button>
+    <button id="pauseBtn">Pause</button>
+  </div>
   <a-scene xr-mode-ui="enabled: true" vr-mode-ui="enabled: true">
     <a-assets>
       <video id="arVideo" 
              src="https://raw.githubusercontent.com/Sunidhi-incline/ar-vr-video-player/gh-pages/myvideo.mp4"
-             autoplay loop muted playsinline></video>
+             loop 
+             playsinline
+             crossorigin="anonymous"
+             webkit-playsinline
+             style="display:none"></video>
     </a-assets>
 
     <a-entity position="0 1.6 -3">
@@ -55,14 +79,32 @@
   </div>
   
   <script>
+    // Play/pause controls
+    const vid = document.getElementById('arVideo');
+    document.getElementById('playBtn').onclick = () => {
+      vid.play();
+    };
+    document.getElementById('pauseBtn').onclick = () => {
+      vid.pause();
+    };
+
+    // Optionally, try to autoplay muted (browser policy)
+    vid.muted = true;
+    vid.play();
+
+    // Optional: Hide controls on mobile in AR/VR mode
     const scene = document.querySelector('a-scene');
     scene.addEventListener('enter-vr', () => {
+      document.getElementById('nativeControls').style.display = 'none';
       if (scene.is('ar-mode')) {
         document.getElementById('arPrompt').style.display = 'block';
         setTimeout(() => {
           document.getElementById('arPrompt').style.display = 'none';
         }, 5000);
       }
+    });
+    scene.addEventListener('exit-vr', () => {
+      document.getElementById('nativeControls').style.display = 'flex';
     });
   </script>
 </body>
