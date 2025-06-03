@@ -2,9 +2,36 @@
 <html>
 <head>
   <title>AR/VR Video Experience</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
   <style>
     body { margin: 0; overflow: hidden; }
+    #controls {
+      position: absolute;
+      left: 50%;
+      bottom: 40px;
+      transform: translateX(-50%);
+      z-index: 10;
+      background: rgba(0,0,0,0.5);
+      padding: 12px 24px;
+      border-radius: 12px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+    #controls button {
+      background: #222;
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background 0.2s;
+    }
+    #controls button:hover {
+      background: #444;
+    }
     .ar-prompt { 
       position: absolute; 
       bottom: 20px; 
@@ -14,45 +41,25 @@
       font-family: Arial; 
       text-shadow: 0 0 5px black;
     }
-    #nativeControls {
-      position: absolute;
-      left: 50%;
-      bottom: 40px;
-      transform: translateX(-50%);
-      z-index: 10;
-      background: rgba(0,0,0,0.4);
-      padding: 8px 16px;
-      border-radius: 8px;
-      display: flex;
-      gap: 10px;
-      align-items: center;
-    }
-    #nativeControls button {
-      background: #222;
-      color: #fff;
-      border: none;
-      padding: 6px 12px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 16px;
-    }
   </style>
 </head>
 <body>
-  <!-- Native controls for play/pause -->
-  <div id="nativeControls">
+  <!-- Video Controls -->
+  <div id="controls">
     <button id="playBtn">Play</button>
     <button id="pauseBtn">Pause</button>
+    <button id="resumeBtn">Resume</button>
+    <button id="stopBtn">Stop</button>
   </div>
+
   <a-scene xr-mode-ui="enabled: true" vr-mode-ui="enabled: true">
     <a-assets>
       <video id="arVideo" 
              src="https://raw.githubusercontent.com/Sunidhi-incline/ar-vr-video-player/gh-pages/myvideo.mp4"
-             loop 
-             playsinline
              crossorigin="anonymous"
              webkit-playsinline
-             style="display:none"></video>
+             playsinline
+             preload="auto"></video>
     </a-assets>
 
     <a-entity position="0 1.6 -3">
@@ -79,23 +86,35 @@
   </div>
   
   <script>
-    // Play/pause controls
     const vid = document.getElementById('arVideo');
-    document.getElementById('playBtn').onclick = () => {
+    const playBtn = document.getElementById('playBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const resumeBtn = document.getElementById('resumeBtn');
+    const stopBtn = document.getElementById('stopBtn');
+
+    playBtn.onclick = () => {
+      vid.currentTime = 0;
       vid.play();
     };
-    document.getElementById('pauseBtn').onclick = () => {
+    pauseBtn.onclick = () => {
       vid.pause();
     };
+    resumeBtn.onclick = () => {
+      vid.play();
+    };
+    stopBtn.onclick = () => {
+      vid.pause();
+      vid.currentTime = 0;
+    };
 
-    // Optionally, try to autoplay muted (browser policy)
+    // Try to autoplay muted for browser compatibility
     vid.muted = true;
     vid.play();
 
-    // Optional: Hide controls on mobile in AR/VR mode
+    // Hide controls in AR/VR mode
     const scene = document.querySelector('a-scene');
     scene.addEventListener('enter-vr', () => {
-      document.getElementById('nativeControls').style.display = 'none';
+      document.getElementById('controls').style.display = 'none';
       if (scene.is('ar-mode')) {
         document.getElementById('arPrompt').style.display = 'block';
         setTimeout(() => {
@@ -104,7 +123,7 @@
       }
     });
     scene.addEventListener('exit-vr', () => {
-      document.getElementById('nativeControls').style.display = 'flex';
+      document.getElementById('controls').style.display = 'flex';
     });
   </script>
 </body>
