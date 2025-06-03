@@ -4,7 +4,6 @@
   <title>Immersive Video Experience</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@1.4.3/dist/hls.min.js"></script>
   <style>
     body, html {
       margin: 0;
@@ -12,6 +11,7 @@
       overflow: hidden;
       height: 100%;
       font-family: 'Arial', sans-serif;
+      background: #000;
     }
     
     #loading {
@@ -80,13 +80,9 @@
       align-items: center;
     }
     
-    #controls button:hover, #controls button:active {
+    #controls button:hover {
       background: rgba(255,255,255,0.3);
       transform: scale(1.1);
-    }
-    
-    #controls button i {
-      font-size: 24px;
     }
     
     #progress-container {
@@ -143,6 +139,21 @@
       z-index: 11;
       display: none;
     }
+    
+    /* Touch instructions */
+    #touch-instructions {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: white;
+      background: rgba(0,0,0,0.5);
+      padding: 10px 20px;
+      border-radius: 10px;
+      text-align: center;
+      display: none;
+      z-index: 10;
+    }
   </style>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -151,9 +162,14 @@
   <div id="loading">
     <div class="loader"></div>
     <p>Loading immersive experience...</p>
-    <p id="loading-progress">0%</p>
   </div>
 
+  <!-- Touch Instructions -->
+  <div id="touch-instructions">
+    Double-tap to show/hide controls<br>
+    Pinch to resize video
+  </div>
+  
   <!-- AR Mode Button -->
   <button id="enter-ar">Enter AR Mode</button>
   
@@ -166,7 +182,6 @@
       <div id="progress-bar"></div>
     </div>
     <div id="time-display">0:00 / 0:00</div>
-    <button id="fullscreenBtn" title="Fullscreen"><i class="fas fa-expand"></i></button>
     <button id="vrBtn" title="Enter VR"><i class="fas fa-vr-cardboard"></i></button>
   </div>
 
@@ -177,21 +192,23 @@
 
   <a-scene xr-mode-ui="enabled: true" vr-mode-ui="enabled: true">
     <a-assets>
+      <!-- Using GitHub-hosted video -->
       <video id="arVideo" 
+             src="https://raw.githubusercontent.com/Sunidhi-incline/ar-vr-video-player/gh-pages/myvideo.mp4"
              crossorigin="anonymous"
              webkit-playsinline
              playsinline
              preload="auto"></video>
     </a-assets>
 
-    <!-- Video screen with responsive sizing -->
-    <a-entity id="video-screen" position="0 1.6 -3">
+    <!-- Video screen with pinch-to-zoom -->
+    <a-entity id="video-screen" position="0 1.6 -4" scale="1 1 1">
       <a-video 
         id="main-video"
         src="#arVideo" 
         width="6" 
         height="3.375"
-        position="0 0 -4"
+        position="0 0 0"
       ></a-video>
     </a-entity>
     
@@ -201,7 +218,6 @@
   <script>
     // Get DOM elements
     const loadingScreen = document.getElementById('loading');
-    const loadingProgress = document.getElementById('loading-progress');
     const controls = document.getElementById('controls');
     const progressContainer = document.getElementById('progress-container');
     const progressBar = document.getElementById('progress-bar');
@@ -209,48 +225,14 @@
     const playBtn = document.getElementById('playBtn');
     const pauseBtn = document.getElementById('pauseBtn');
     const stopBtn = document.getElementById('stopBtn');
-    const fullscreenBtn = document.getElementById('fullscreenBtn');
     const vrBtn = document.getElementById('vrBtn');
-    const enterAR = document.getElementById('enterAR');
+    const enterAR = document.getElementById('enter-ar');
     const arPrompt = document.getElementById('arPrompt');
     const vid = document.getElementById('arVideo');
     const scene = document.querySelector('a-scene');
     const videoScreen = document.getElementById('video-screen');
     const mainVideo = document.getElementById('main-video');
-
-    // Video source configuration
-    const videoSources = [
-      {
-        name: "Main Video",
-        url: "https://drive.google.com/uc?export=download&id=16r1RnkY0MQRdxG6Bfty_z2d-r53wOM9u",
-        type: "video/mp4"
-      },
-      {
-        name: "Alternative Video",
-        url: "https://example.com/another-video.mp4",
-        type: "video/mp4"
-      }
-    ];
-
-    // Initialize with first video
-    let currentVideoIndex = 0;
-    vid.src = videoSources[currentVideoIndex].url;
-
-    // Initialize HLS.js if needed
-    let hls;
-    if (vid.canPlayType('application/vnd.apple.mpegurl')) {
-      // Native HLS support
-      vid.src = videoSources[currentVideoIndex].url;
-    } else if (Hls.isSupported()) {
-      // HLS.js support
-      hls = new Hls();
-      hls.loadSource(videoSources[currentVideoIndex].url);
-      hls.attachMedia(vid);
-      hls.on(Hls.Events.MANIFEST_PARSED, () => vid.play());
-      hls.on(Hls.Events.ERROR, (event, data) => {
-        console.error('HLS error:', data);
-      });
-    }
+    const touchInstructions = document.getElementById('touch-instructions');
 
     // Format time display
     function formatTime(seconds) {
@@ -261,9 +243,11 @@
 
     // Update progress bar
     function updateProgress() {
-      const percent = (vid.currentTime / vid.duration) * 100;
-      progressBar.style.width = `${percent}%`;
-      timeDisplay.textContent = `${formatTime(vid.currentTime)} / ${formatTime(vid.duration)}`;
+      if (vid.duration) {
+        const percent = (vid.currentTime / vid.duration) * 100;
+        progressBar.style.width = `${percent}%`;
+        timeDisplay.textContent = `${formatTime(vid.currentTime)} / ${formatTime(vid.duration)}`;
+      }
     }
 
     // Seek functionality
@@ -281,17 +265,6 @@
       vid.currentTime = 0;
     });
 
-    // Fullscreen toggle
-    fullscreenBtn.addEventListener('click', () => {
-      if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(err => {
-          console.error(`Error attempting to enable fullscreen: ${err.message}`);
-        });
-      } else {
-        document.exitFullscreen();
-      }
-    });
-
     // VR mode toggle
     vrBtn.addEventListener('click', () => {
       scene.enterVR();
@@ -303,14 +276,6 @@
       timeDisplay.textContent = `0:00 / ${formatTime(vid.duration)}`;
     });
     
-    vid.addEventListener('progress', () => {
-      if (vid.buffered.length > 0) {
-        const bufferedEnd = vid.buffered.end(vid.buffered.length - 1);
-        const percent = (bufferedEnd / vid.duration) * 100;
-        loadingProgress.textContent = `${Math.round(percent)}% loaded`;
-      }
-    });
-
     vid.addEventListener('canplaythrough', () => {
       setTimeout(() => {
         loadingScreen.style.opacity = '0';
@@ -318,17 +283,9 @@
           loadingScreen.style.display = 'none';
           vid.play().catch(e => {
             console.log("Autoplay prevented:", e);
-            playBtn.style.display = 'block';
           });
         }, 500);
       }, 1000);
-    });
-
-    vid.addEventListener('ended', () => {
-      // Loop to next video
-      currentVideoIndex = (currentVideoIndex + 1) % videoSources.length;
-      vid.src = videoSources[currentVideoIndex].url;
-      vid.play();
     });
 
     // Handle AR mode
@@ -349,9 +306,19 @@
     // Mobile AR detection
     if (/Android|iPhone|iPad/i.test(navigator.userAgent)) {
       enterAR.style.display = 'block';
+      touchInstructions.style.display = 'block';
+      
       enterAR.addEventListener('click', () => {
         scene.enterAR();
       });
+      
+      // Hide instructions after 5 seconds
+      setTimeout(() => {
+        touchInstructions.style.opacity = '0';
+        setTimeout(() => {
+          touchInstructions.style.display = 'none';
+        }, 1000);
+      }, 5000);
     }
 
     // Initial autoplay with muted audio
@@ -366,17 +333,6 @@
       }
     });
     
-    // Handle window resize
-    window.addEventListener('resize', () => {
-      const aspectRatio = 16/9;
-      const width = Math.min(6, window.innerWidth / 100);
-      mainVideo.setAttribute('width', width);
-      mainVideo.setAttribute('height', width / aspectRatio);
-    });
-    
-    // Initial size setup
-    window.dispatchEvent(new Event('resize'));
-    
     // Touch controls for mobile
     let lastTouchTime = 0;
     scene.addEventListener('touchstart', (e) => {
@@ -387,6 +343,63 @@
       }
       lastTouchTime = currentTime;
     });
+    
+    // Pinch-to-zoom for video scaling
+    let initialDistance = null;
+    let initialScale = videoScreen.getAttribute('scale');
+    
+    scene.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 2) {
+        initialDistance = Math.hypot(
+          e.touches[0].pageX - e.touches[1].pageX,
+          e.touches[0].pageY - e.touches[1].pageY
+        );
+        initialScale = videoScreen.getAttribute('scale') || {x:1, y:1, z:1};
+      }
+    });
+    
+    scene.addEventListener('touchmove', (e) => {
+      if (e.touches.length === 2 && initialDistance !== null) {
+        e.preventDefault();
+        const currentDistance = Math.hypot(
+          e.touches[0].pageX - e.touches[1].pageX,
+          e.touches[0].pageY - e.touches[1].pageY
+        );
+        
+        const scaleFactor = currentDistance / initialDistance;
+        const newScale = {
+          x: initialScale.x * scaleFactor,
+          y: initialScale.y * scaleFactor,
+          z: initialScale.z * scaleFactor
+        };
+        
+        // Limit scale between 0.5x and 2x
+        newScale.x = Math.max(0.5, Math.min(2, newScale.x));
+        newScale.y = Math.max(0.5, Math.min(2, newScale.y));
+        newScale.z = Math.max(0.5, Math.min(2, newScale.z));
+        
+        videoScreen.setAttribute('scale', newScale);
+      }
+    });
+    
+    scene.addEventListener('touchend', () => {
+      initialDistance = null;
+    });
+    
+    // Show controls when mouse moves
+    let mouseTimer;
+    document.addEventListener('mousemove', () => {
+      controls.classList.remove('hidden');
+      clearTimeout(mouseTimer);
+      mouseTimer = setTimeout(() => {
+        if (!scene.is('vr-mode') && !scene.is('ar-mode')) {
+          controls.classList.add('hidden');
+        }
+      }, 3000);
+    });
+    
+    // Initial show controls
+    setTimeout(() => controls.classList.add('hidden'), 5000);
   </script>
 </body>
 </html>
