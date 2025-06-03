@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>AR/VR Video Experience</title>
+  <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if(/Android|iPhone|iPad/i.test(navigator.userAgent)) {
+        document.querySelector('[ar-button]').setAttribute('visible', 'true');
+      }
+    });
+  </script>
+  <style>
+    body { margin: 0; overflow: hidden; }
+    .ar-prompt { 
+      position: absolute; 
+      bottom: 20px; 
+      width: 100%; 
+      text-align: center; 
+      color: white; 
+      font-family: Arial; 
+      text-shadow: 0 0 5px black;
+    }
+  </style>
+</head>
+<body>
+  <a-scene xr-mode-ui="enabled: true" vr-mode-ui="enabled: true">
+    <a-assets>
+      <video id="arVideo" 
+             src="https://drive.google.com/uc?export=download&id=16r1RnkY0MQRdxG6Bfty_z2d-r53wOM9u"
+             autoplay loop muted playsinline></video>
+    </a-assets>
+
+    <a-entity position="0 1.6 -3">
+      <a-video 
+        src="#arVideo" 
+        width="4" 
+        height="2.25"
+        look-at="[camera]"
+        position="0 0 -4"
+      ></a-video>
+    </a-entity>
+    
+    <a-entity position="0 0 -1" 
+              text="value: Open in AR (Mobile Only); align: center; color: white; width: 5" 
+              visible="false" 
+              ar-button="mode: AR">
+    </a-entity>
+    
+    <a-camera position="0 1.6 0"></a-camera>
+  </a-scene>
+  
+  <div class="ar-prompt" id="arPrompt" style="display: none;">
+    Point camera at a flat surface to place the video
+  </div>
+  
+  <script>
+    const scene = document.querySelector('a-scene');
+    scene.addEventListener('enter-vr', () => {
+      if (scene.is('ar-mode')) {
+        document.getElementById('arPrompt').style.display = 'block';
+        setTimeout(() => {
+          document.getElementById('arPrompt').style.display = 'none';
+        }, 5000);
+      }
+    });
+  </script>
+</body>
+</html>
