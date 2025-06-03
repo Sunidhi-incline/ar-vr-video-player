@@ -1,96 +1,568 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+<head>
     <meta charset="UTF-8" />
-    <title>VR Video Player</title>
+    <title>Immersive VR/AR Video Experience</title>
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
     <style>
-      #uploader {
-        position: fixed;
-        top: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        z-index: 999;
-        background: rgba(0, 0, 0, 0.8);
-        padding: 10px 20px;
-        border-radius: 8px;
-        color: white;
-      }
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Orbitron', monospace;
+            background: linear-gradient(135deg, #0a0a23, #1a1a3e, #2d1b69);
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Animated background particles */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .particle {
+            position: absolute;
+            background: rgba(64, 224, 255, 0.6);
+            border-radius: 50%;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.3; }
+            50% { transform: translateY(-20px) rotate(180deg); opacity: 0.8; }
+        }
+
+        /* Main UI Panel */
+        #mainPanel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 999;
+            background: linear-gradient(145deg, rgba(15, 15, 40, 0.95), rgba(30, 30, 60, 0.95));
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(64, 224, 255, 0.3);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            text-align: center;
+            min-width: 400px;
+        }
+
+        #mainPanel.hidden {
+            opacity: 0;
+            transform: translate(-50%, -50%) scale(0.8);
+            pointer-events: none;
+        }
+
+        .logo {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: #40e0ff;
+            text-shadow: 0 0 20px rgba(64, 224, 255, 0.5);
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+        }
+
+        .tagline {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1rem;
+            margin-bottom: 30px;
+            font-weight: 400;
+        }
+
+        /* Mode Selector */
+        .mode-selector {
+            margin-bottom: 30px;
+        }
+
+        .mode-title {
+            color: #40e0ff;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        .mode-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .mode-btn {
+            padding: 15px 10px;
+            background: linear-gradient(145deg, rgba(20, 20, 50, 0.8), rgba(40, 40, 80, 0.8));
+            border: 2px solid rgba(64, 224, 255, 0.2);
+            border-radius: 12px;
+            color: rgba(255, 255, 255, 0.8);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Orbitron', monospace;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .mode-btn:hover {
+            border-color: #40e0ff;
+            background: linear-gradient(145deg, rgba(30, 30, 60, 0.9), rgba(50, 50, 90, 0.9));
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(64, 224, 255, 0.2);
+        }
+
+        .mode-btn.active {
+            background: linear-gradient(145deg, rgba(64, 224, 255, 0.2), rgba(64, 224, 255, 0.1));
+            border-color: #40e0ff;
+            color: #40e0ff;
+            box-shadow: 0 0 20px rgba(64, 224, 255, 0.3);
+        }
+
+        /* File Upload */
+        .upload-zone {
+            position: relative;
+            margin-bottom: 25px;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .upload-btn {
+            display: block;
+            width: 100%;
+            padding: 20px;
+            background: linear-gradient(145deg, #40e0ff, #0099cc);
+            border: none;
+            border-radius: 15px;
+            color: white;
+            font-family: 'Orbitron', monospace;
+            font-weight: 700;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 10px 30px rgba(64, 224, 255, 0.3);
+        }
+
+        .upload-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(64, 224, 255, 0.4);
+            background: linear-gradient(145deg, #50f0ff, #00aadd);
+        }
+
+        .status-text {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.8rem;
+            margin-top: 15px;
+            line-height: 1.4;
+        }
+
+        /* VR Controls Panel */
+        #vrControls {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 998;
+            background: rgba(15, 15, 40, 0.9);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(64, 224, 255, 0.3);
+            border-radius: 50px;
+            padding: 15px 25px;
+            display: none;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .vr-btn {
+            width: 50px;
+            height: 50px;
+            border: 2px solid rgba(64, 224, 255, 0.5);
+            border-radius: 50%;
+            background: linear-gradient(145deg, rgba(30, 30, 60, 0.8), rgba(50, 50, 90, 0.8));
+            color: #40e0ff;
+            cursor: pointer;
+            font-size: 1.2rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .vr-btn:hover {
+            border-color: #40e0ff;
+            background: linear-gradient(145deg, rgba(64, 224, 255, 0.2), rgba(64, 224, 255, 0.1));
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(64, 224, 255, 0.4);
+        }
+
+        /* Loading Animation */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 10, 35, 0.95);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .loading-spinner {
+            width: 80px;
+            height: 80px;
+            border: 4px solid rgba(64, 224, 255, 0.2);
+            border-top: 4px solid #40e0ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            box-shadow: 0 0 30px rgba(64, 224, 255, 0.3);
+        }
+
+        .loading-text {
+            color: #40e0ff;
+            font-family: 'Orbitron', monospace;
+            font-weight: 700;
+            font-size: 1.2rem;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            #mainPanel {
+                min-width: 90%;
+                padding: 30px 20px;
+            }
+            
+            .logo {
+                font-size: 2rem;
+            }
+            
+            .mode-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+        }
+
+        /* VR Scene Enhancements */
+        a-scene {
+            background: radial-gradient(circle at center, #1a1a3e 0%, #0a0a23 100%);
+        }
     </style>
-  </head>
-  <body>
-    <div id="uploader">
-      <label for="videoFile">Upload video:</label>
-      <input type="file" id="videoFile" accept="video/*" />
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="particles" id="particles"></div>
+
+    <!-- Main Control Panel -->
+    <div id="mainPanel">
+        <div class="logo">⚡ NEXUS VR</div>
+        <div class="tagline">Immersive Video Experience Platform</div>
+        
+        <div class="mode-selector">
+            <div class="mode-title">SELECT REALITY MODE</div>
+            <div class="mode-grid">
+                <button class="mode-btn active" data-mode="theater">🎭 THEATER</button>
+                <button class="mode-btn" data-mode="dome">🌌 DOME</button>
+                <button class="mode-btn" data-mode="cinema">🎬 CINEMA</button>
+            </div>
+        </div>
+
+        <div class="upload-zone">
+            <input type="file" id="videoFile" class="file-input" accept="video/*" />
+            <label for="videoFile" class="upload-btn">
+                📡 UPLOAD MEDIA FILE
+            </label>
+        </div>
+
+        <div class="status-text">
+            Your regular videos will be enhanced with immersive VR/AR environments.<br>
+            Supports: MP4, WebM, MOV, AVI formats
+        </div>
     </div>
 
-    <a-scene vr-mode-ui="enabled: true">
-      <!-- Sky background -->
-      <a-sky color="#222"></a-sky>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">INITIALIZING VR ENVIRONMENT...</div>
+    </div>
 
-      <!-- Video screen -->
-      <a-video
-        id="videoScreen"
-        width="16"
-        height="9"
-        position="0 2 -6"
-        rotation="0 0 0"
-        src=""
-      ></a-video>
+    <!-- VR Scene -->
+    <a-scene vr-mode-ui="enabled: true" background="color: #0a0a23">
+        <a-assets>
+            <!-- Assets will be added dynamically -->
+        </a-assets>
 
-      <!-- Camera and cursor for VR interaction -->
-      <a-entity camera look-controls wasd-controls>
-        <a-entity
-          cursor="fuse: true; fuseTimeout: 500"
-          position="0 0 -1"
-          geometry="primitive: ring; radiusInner: 0.02; radiusOuter: 0.03"
-          material="color: white; shader: flat"
-        ></a-entity>
-      </a-entity>
+        <!-- Environment Setup -->
+        <a-sky id="skybox" color="#0a0a23"></a-sky>
+        
+        <!-- Ambient lighting -->
+        <a-light type="ambient" color="#404040" intensity="0.4"></a-light>
+        <a-light type="directional" position="0 10 5" color="#40e0ff" intensity="0.3"></a-light>
+
+        <!-- Main Video Screen -->
+        <a-video
+            id="videoScreen"
+            width="16"
+            height="9"
+            position="0 2 -8"
+            rotation="0 0 0"
+            src=""
+            material="shader: flat"
+        ></a-video>
+
+        <!-- Theater Environment Elements -->
+        <a-entity id="theaterElements">
+            <!-- Floor -->
+            <a-plane 
+                position="0 -1 0" 
+                rotation="-90 0 0" 
+                width="30" 
+                height="30" 
+                color="#1a1a3e" 
+                material="roughness: 0.8">
+            </a-plane>
+            
+            <!-- Side walls with glow -->
+            <a-box position="-12 3 -8" width="2" height="8" depth="20" color="#2d1b69" material="emissive: #40e0ff; emissiveIntensity: 0.1"></a-box>
+            <a-box position="12 3 -8" width="2" height="8" depth="20" color="#2d1b69" material="emissive: #40e0ff; emissiveIntensity: 0.1"></a-box>
+        </a-entity>
+
+        <!-- Cinema Environment -->
+        <a-entity id="cinemaElements" visible="false">
+            <!-- Curved screen background -->
+            <a-cylinder position="0 2 -10" radius="12" height="8" theta-start="45" theta-length="90" color="#1a1a3e" material="side: back"></a-cylinder>
+        </a-entity>
+
+        <!-- Dome Environment -->
+        <a-entity id="domeElements" visible="false">
+            <a-sphere position="0 0 0" radius="20" color="#0a0a23" material="side: back; emissive: #40e0ff; emissiveIntensity: 0.05"></a-sphere>
+        </a-entity>
+
+        <!-- Floating particles for ambiance -->
+        <a-entity id="ambientParticles">
+            <a-sphere position="5 4 -3" radius="0.1" color="#40e0ff" material="emissive: #40e0ff; emissiveIntensity: 0.5">
+                <a-animation attribute="position" to="5 6 -3" direction="alternate" repeat="indefinite" dur="3000"></a-animation>
+            </a-sphere>
+            <a-sphere position="-7 3 -5" radius="0.08" color="#40e0ff" material="emissive: #40e0ff; emissiveIntensity: 0.3">
+                <a-animation attribute="position" to="-7 5 -5" direction="alternate" repeat="indefinite" dur="4000"></a-animation>
+            </a-sphere>
+            <a-sphere position="3 5 -12" radius="0.12" color="#40e0ff" material="emissive: #40e0ff; emissiveIntensity: 0.4">
+                <a-animation attribute="position" to="3 7 -12" direction="alternate" repeat="indefinite" dur="3500"></a-animation>
+            </a-sphere>
+        </a-entity>
+
+        <!-- Camera with enhanced controls -->
+        <a-entity 
+            camera 
+            look-controls="pointerLockEnabled: true" 
+            wasd-controls="acceleration: 20"
+            position="0 1.6 0">
+            
+            <!-- VR Cursor -->
+            <a-entity
+                cursor="fuse: true; fuseTimeout: 1000"
+                position="0 0 -1"
+                geometry="primitive: ring; radiusInner: 0.02; radiusOuter: 0.03"
+                material="color: #40e0ff; shader: flat; opacity: 0.8"
+                animation__mouseenter="property: scale; to: 1.5 1.5 1.5; startEvents: mouseenter; dur: 150"
+                animation__mouseleave="property: scale; to: 1 1 1; startEvents: mouseleave; dur: 150">
+            </a-entity>
+        </a-entity>
     </a-scene>
 
+    <!-- VR Control Panel -->
+    <div id="vrControls">
+        <button class="vr-btn" id="playBtn" title="Play">▶</button>
+        <button class="vr-btn" id="pauseBtn" title="Pause">⏸</button>
+        <button class="vr-btn" id="stopBtn" title="Stop">⏹</button>
+        <button class="vr-btn" id="fullscreenBtn" title="Fullscreen">⛶</button>
+    </div>
+
     <script>
-      const fileInput = document.getElementById('videoFile');
-      const videoElement = document.createElement('video');
-      const aVideo = document.querySelector('#videoScreen');
-
-      videoElement.setAttribute('crossorigin', 'anonymous');
-      videoElement.setAttribute('webkit-playsinline', '');
-      videoElement.setAttribute('playsinline', '');
-      videoElement.setAttribute('loop', true);
-      videoElement.setAttribute('controls', true);
-
-      fileInput.addEventListener('change', (event) => {
-        const file = event.target.files[0];
-        if (file) {
-          const videoURL = URL.createObjectURL(file);
-          videoElement.src = videoURL;
-          videoElement.load();
-          videoElement.play();
-
-          aVideo.setAttribute('src', `#${file.name}`);
-          aVideo.setAttribute('material', 'shader: flat');
-
-          // Attach video to the scene dynamically
-          const assetItemId = file.name;
-          let assets = document.querySelector('a-assets');
-          if (!assets) {
-            assets = document.createElement('a-assets');
-            document.querySelector('a-scene').appendChild(assets);
-          }
-
-          const assetItem = document.createElement('video');
-          assetItem.setAttribute('id', assetItemId);
-          assetItem.setAttribute('src', videoURL);
-          assetItem.setAttribute('autoplay', true);
-          assetItem.setAttribute('loop', true);
-          assetItem.setAttribute('crossorigin', 'anonymous');
-          assetItem.setAttribute('playsinline', '');
-          assetItem.setAttribute('webkit-playsinline', '');
-
-          assets.appendChild(assetItem);
+        // Initialize particles background
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.width = particle.style.height = (Math.random() * 4 + 2) + 'px';
+                particle.style.animationDelay = Math.random() * 6 + 's';
+                particle.style.animationDuration = (Math.random() * 4 + 4) + 's';
+                particlesContainer.appendChild(particle);
+            }
         }
-      });
+
+        // Mode switching
+        let currentMode = 'theater';
+        const modeButtons = document.querySelectorAll('.mode-btn');
+        const environments = {
+            theater: document.getElementById('theaterElements'),
+            cinema: document.getElementById('cinemaElements'),
+            dome: document.getElementById('domeElements')
+        };
+
+        modeButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                modeButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                const newMode = btn.dataset.mode;
+                switchEnvironment(newMode);
+            });
+        });
+
+        function switchEnvironment(mode) {
+            // Hide all environments
+            Object.values(environments).forEach(env => {
+                if (env) env.setAttribute('visible', false);
+            });
+            
+            // Show selected environment
+            if (environments[mode]) {
+                environments[mode].setAttribute('visible', true);
+            }
+            
+            // Adjust video position based on mode
+            const videoScreen = document.getElementById('videoScreen');
+            switch (mode) {
+                case 'theater':
+                    videoScreen.setAttribute('position', '0 2 -8');
+                    videoScreen.setAttribute('width', '16');
+                    videoScreen.setAttribute('height', '9');
+                    break;
+                case 'cinema':
+                    videoScreen.setAttribute('position', '0 2 -10');
+                    videoScreen.setAttribute('width', '18');
+                    videoScreen.setAttribute('height', '10');
+                    break;
+                case 'dome':
+                    videoScreen.setAttribute('position', '0 3 -6');
+                    videoScreen.setAttribute('width', '20');
+                    videoScreen.setAttribute('height', '11');
+                    break;
+            }
+            
+            currentMode = mode;
+        }
+
+        // File upload handling
+        const fileInput = document.getElementById('videoFile');
+        const mainPanel = document.getElementById('mainPanel');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const vrControls = document.getElementById('vrControls');
+        let currentVideo = null;
+
+        fileInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                loadVideo(file);
+            }
+        });
+
+        function loadVideo(file) {
+            // Show loading
+            loadingOverlay.style.display = 'flex';
+            mainPanel.classList.add('hidden');
+            
+            setTimeout(() => {
+                const videoURL = URL.createObjectURL(file);
+                const assetItemId = 'uploaded-video';
+                
+                // Create video asset
+                let assets = document.querySelector('a-assets');
+                if (!assets) {
+                    assets = document.createElement('a-assets');
+                    document.querySelector('a-scene').appendChild(assets);
+                }
+                
+                // Remove existing video if any
+                const existingVideo = document.getElementById(assetItemId);
+                if (existingVideo) {
+                    existingVideo.remove();
+                }
+                
+                const videoElement = document.createElement('video');
+                videoElement.setAttribute('id', assetItemId);
+                videoElement.setAttribute('src', videoURL);
+                videoElement.setAttribute('autoplay', true);
+                videoElement.setAttribute('loop', true);
+                videoElement.setAttribute('crossorigin', 'anonymous');
+                videoElement.setAttribute('playsinline', '');
+                videoElement.setAttribute('webkit-playsinline', '');
+                videoElement.setAttribute('controls', false);
+                assets.appendChild(videoElement);
+                
+                // Apply to video screen
+                const aVideo = document.querySelector('#videoScreen');
+                aVideo.setAttribute('src', `#${assetItemId}`);
+                aVideo.setAttribute('material', 'shader: flat');
+                
+                currentVideo = videoElement;
+                
+                // Hide loading and show controls
+                setTimeout(() => {
+                    loadingOverlay.style.display = 'none';
+                    vrControls.style.display = 'flex';
+                }, 1000);
+                
+            }, 1500);
+        }
+
+        // VR Controls
+        document.getElementById('playBtn').addEventListener('click', () => {
+            if (currentVideo) currentVideo.play();
+        });
+
+        document.getElementById('pauseBtn').addEventListener('click', () => {
+            if (currentVideo) currentVideo.pause();
+        });
+
+        document.getElementById('stopBtn').addEventListener('click', () => {
+            if (currentVideo) {
+                currentVideo.pause();
+                currentVideo.currentTime = 0;
+            }
+        });
+
+        document.getElementById('fullscreenBtn').addEventListener('click', () => {
+            const scene = document.querySelector('a-scene');
+            if (scene.requestFullscreen) {
+                scene.requestFullscreen();
+            }
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            createParticles();
+            switchEnvironment('theater');
+        });
     </script>
-  </body>
+</body>
 </html>
