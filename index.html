@@ -220,13 +220,15 @@
             #vrControls {
                 bottom: 15px;
                 padding: 10px 15px;
-                gap: 15px;
+                gap: 10px;
+                flex-wrap: wrap;
+                justify-content: center;
             }
             
             .vr-btn {
                 width: 40px;
                 height: 40px;
-                font-size: 1rem;
+                font-size: 0.9rem;
             }
         }
 
@@ -247,14 +249,16 @@
             
             #vrControls {
                 bottom: 10px;
-                padding: 8px 12px;
-                gap: 10px;
+                padding: 8px 10px;
+                gap: 8px;
+                flex-wrap: wrap;
+                justify-content: center;
             }
             
             .vr-btn {
                 width: 35px;
                 height: 35px;
-                font-size: 0.9rem;
+                font-size: 0.8rem;
             }
         }
 
@@ -517,6 +521,9 @@
                 // Adjust scene for device
                 adjustForDevice();
                 
+                // Reset zoom level when new video loads
+                currentZoomLevel = 1.0;
+                
                 // Hide loading and show controls
                 setTimeout(() => {
                     loadingOverlay.style.display = 'none';
@@ -533,6 +540,18 @@
             }, 1500);
         }
 
+        // Zoom functionality
+        let currentZoomLevel = 1.0;
+        const minZoom = 0.3;
+        const maxZoom = 2.0;
+        const zoomStep = 0.2;
+
+        function updateVideoScale(scale) {
+            const videoScreen = document.getElementById('videoScreen');
+            videoScreen.setAttribute('scale', `${scale} ${scale} ${scale}`);
+            currentZoomLevel = scale;
+        }
+
         // VR Controls
         document.getElementById('playBtn').addEventListener('click', () => {
             if (currentVideo) currentVideo.play();
@@ -546,6 +565,20 @@
             if (currentVideo) {
                 currentVideo.pause();
                 currentVideo.currentTime = 0;
+            }
+        });
+
+        document.getElementById('zoomOutBtn').addEventListener('click', () => {
+            if (currentZoomLevel > minZoom) {
+                const newZoom = Math.max(minZoom, currentZoomLevel - zoomStep);
+                updateVideoScale(newZoom);
+            }
+        });
+
+        document.getElementById('zoomInBtn').addEventListener('click', () => {
+            if (currentZoomLevel < maxZoom) {
+                const newZoom = Math.min(maxZoom, currentZoomLevel + zoomStep);
+                updateVideoScale(newZoom);
             }
         });
 
