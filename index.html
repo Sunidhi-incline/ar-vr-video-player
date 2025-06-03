@@ -1,129 +1,391 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>AR/VR Video Experience</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Immersive Video Experience</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@1.4.3/dist/hls.min.js"></script>
   <style>
-    body { margin: 0; overflow: hidden; }
+    body, html {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      height: 100%;
+      font-family: 'Arial', sans-serif;
+    }
+    
+    #loading {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #000;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      transition: opacity 0.5s;
+    }
+    
+    .loader {
+      border: 5px solid #f3f3f3;
+      border-top: 5px solid #3498db;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 2s linear infinite;
+      margin-bottom: 20px;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
     #controls {
       position: absolute;
       left: 50%;
-      bottom: 40px;
+      bottom: 30px;
       transform: translateX(-50%);
       z-index: 10;
-      background: rgba(0,0,0,0.5);
+      background: rgba(0,0,0,0.7);
       padding: 12px 24px;
-      border-radius: 12px;
+      border-radius: 30px;
       display: flex;
-      gap: 12px;
+      gap: 15px;
+      align-items: center;
+      transition: bottom 0.3s;
+      backdrop-filter: blur(5px);
+    }
+    
+    #controls.hidden {
+      bottom: -60px;
+    }
+    
+    #controls button {
+      background: rgba(255,255,255,0.2);
+      color: white;
+      border: none;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 18px;
+      transition: all 0.2s;
+      display: flex;
+      justify-content: center;
       align-items: center;
     }
-    #controls button {
-      background: #222;
-      color: #fff;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 4px;
+    
+    #controls button:hover, #controls button:active {
+      background: rgba(255,255,255,0.3);
+      transform: scale(1.1);
+    }
+    
+    #controls button i {
+      font-size: 24px;
+    }
+    
+    #progress-container {
+      flex-grow: 1;
+      height: 5px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 3px;
       cursor: pointer;
-      font-size: 16px;
-      transition: background 0.2s;
+      position: relative;
     }
-    #controls button:hover {
-      background: #444;
+    
+    #progress-bar {
+      height: 100%;
+      width: 0%;
+      background: #4285f4;
+      border-radius: 3px;
+      transition: width 0.1s;
     }
+    
+    #time-display {
+      color: white;
+      font-size: 14px;
+      min-width: 100px;
+      text-align: center;
+    }
+    
     .ar-prompt { 
       position: absolute; 
-      bottom: 20px; 
+      bottom: 120px; 
       width: 100%; 
       text-align: center; 
       color: white; 
       font-family: Arial; 
-      text-shadow: 0 0 5px black;
+      text-shadow: 0 0 5px rgba(0,0,0,0.8);
+      font-size: 18px;
+      z-index: 5;
+      padding: 15px;
+      background: rgba(0,0,0,0.5);
+      display: none;
+    }
+    
+    #enter-ar {
+      position: absolute;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #4285f4;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 30px;
+      cursor: pointer;
+      font-size: 16px;
+      z-index: 11;
+      display: none;
     }
   </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+  <!-- Loading Screen -->
+  <div id="loading">
+    <div class="loader"></div>
+    <p>Loading immersive experience...</p>
+    <p id="loading-progress">0%</p>
+  </div>
+
+  <!-- AR Mode Button -->
+  <button id="enter-ar">Enter AR Mode</button>
+  
   <!-- Video Controls -->
   <div id="controls">
-    <button id="playBtn">Play</button>
-    <button id="pauseBtn">Pause</button>
-    <button id="resumeBtn">Resume</button>
-    <button id="stopBtn">Stop</button>
+    <button id="playBtn" title="Play"><i class="fas fa-play"></i></button>
+    <button id="pauseBtn" title="Pause"><i class="fas fa-pause"></i></button>
+    <button id="stopBtn" title="Stop"><i class="fas fa-stop"></i></button>
+    <div id="progress-container">
+      <div id="progress-bar"></div>
+    </div>
+    <div id="time-display">0:00 / 0:00</div>
+    <button id="fullscreenBtn" title="Fullscreen"><i class="fas fa-expand"></i></button>
+    <button id="vrBtn" title="Enter VR"><i class="fas fa-vr-cardboard"></i></button>
+  </div>
+
+  <!-- AR Placement Prompt -->
+  <div class="ar-prompt" id="arPrompt">
+    <i class="fas fa-arrows-alt"></i> Move device to place video in your space
   </div>
 
   <a-scene xr-mode-ui="enabled: true" vr-mode-ui="enabled: true">
     <a-assets>
       <video id="arVideo" 
-             src="https://raw.githubusercontent.com/Sunidhi-incline/ar-vr-video-player/gh-pages/myvideo.mp4"
              crossorigin="anonymous"
              webkit-playsinline
              playsinline
              preload="auto"></video>
     </a-assets>
 
-    <a-entity position="0 1.6 -3">
+    <!-- Video screen with responsive sizing -->
+    <a-entity id="video-screen" position="0 1.6 -3">
       <a-video 
+        id="main-video"
         src="#arVideo" 
-        width="4" 
-        height="2.25"
-        look-at="[camera]"
+        width="6" 
+        height="3.375"
         position="0 0 -4"
       ></a-video>
     </a-entity>
     
-    <a-entity position="0 0 -1" 
-              text="value: Open in AR (Mobile Only); align: center; color: white; width: 5" 
-              visible="false" 
-              ar-button="mode: AR">
-    </a-entity>
-    
-    <a-camera position="0 1.6 0"></a-camera>
+    <a-camera position="0 1.6 0" wasd-controls="enabled: false"></a-camera>
   </a-scene>
   
-  <div class="ar-prompt" id="arPrompt" style="display: none;">
-    Point camera at a flat surface to place the video
-  </div>
-  
   <script>
-    const vid = document.getElementById('arVideo');
+    // Get DOM elements
+    const loadingScreen = document.getElementById('loading');
+    const loadingProgress = document.getElementById('loading-progress');
+    const controls = document.getElementById('controls');
+    const progressContainer = document.getElementById('progress-container');
+    const progressBar = document.getElementById('progress-bar');
+    const timeDisplay = document.getElementById('time-display');
     const playBtn = document.getElementById('playBtn');
     const pauseBtn = document.getElementById('pauseBtn');
-    const resumeBtn = document.getElementById('resumeBtn');
     const stopBtn = document.getElementById('stopBtn');
-
-    playBtn.onclick = () => {
-      vid.currentTime = 0;
-      vid.play();
-    };
-    pauseBtn.onclick = () => {
-      vid.pause();
-    };
-    resumeBtn.onclick = () => {
-      vid.play();
-    };
-    stopBtn.onclick = () => {
-      vid.pause();
-      vid.currentTime = 0;
-    };
-
-    // Try to autoplay muted for browser compatibility
-    vid.muted = true;
-    vid.play();
-
-    // Hide controls in AR/VR mode
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
+    const vrBtn = document.getElementById('vrBtn');
+    const enterAR = document.getElementById('enterAR');
+    const arPrompt = document.getElementById('arPrompt');
+    const vid = document.getElementById('arVideo');
     const scene = document.querySelector('a-scene');
-    scene.addEventListener('enter-vr', () => {
-      document.getElementById('controls').style.display = 'none';
-      if (scene.is('ar-mode')) {
-        document.getElementById('arPrompt').style.display = 'block';
+    const videoScreen = document.getElementById('video-screen');
+    const mainVideo = document.getElementById('main-video');
+
+    // Video source configuration
+    const videoSources = [
+      {
+        name: "Main Video",
+        url: "https://drive.google.com/uc?export=download&id=16r1RnkY0MQRdxG6Bfty_z2d-r53wOM9u",
+        type: "video/mp4"
+      },
+      {
+        name: "Alternative Video",
+        url: "https://example.com/another-video.mp4",
+        type: "video/mp4"
+      }
+    ];
+
+    // Initialize with first video
+    let currentVideoIndex = 0;
+    vid.src = videoSources[currentVideoIndex].url;
+
+    // Initialize HLS.js if needed
+    let hls;
+    if (vid.canPlayType('application/vnd.apple.mpegurl')) {
+      // Native HLS support
+      vid.src = videoSources[currentVideoIndex].url;
+    } else if (Hls.isSupported()) {
+      // HLS.js support
+      hls = new Hls();
+      hls.loadSource(videoSources[currentVideoIndex].url);
+      hls.attachMedia(vid);
+      hls.on(Hls.Events.MANIFEST_PARSED, () => vid.play());
+      hls.on(Hls.Events.ERROR, (event, data) => {
+        console.error('HLS error:', data);
+      });
+    }
+
+    // Format time display
+    function formatTime(seconds) {
+      const min = Math.floor(seconds / 60);
+      const sec = Math.floor(seconds % 60);
+      return `${min}:${sec < 10 ? '0' : ''}${sec}`;
+    }
+
+    // Update progress bar
+    function updateProgress() {
+      const percent = (vid.currentTime / vid.duration) * 100;
+      progressBar.style.width = `${percent}%`;
+      timeDisplay.textContent = `${formatTime(vid.currentTime)} / ${formatTime(vid.duration)}`;
+    }
+
+    // Seek functionality
+    progressContainer.addEventListener('click', (e) => {
+      const rect = progressContainer.getBoundingClientRect();
+      const pos = (e.clientX - rect.left) / rect.width;
+      vid.currentTime = pos * vid.duration;
+    });
+
+    // Playback controls
+    playBtn.addEventListener('click', () => vid.play());
+    pauseBtn.addEventListener('click', () => vid.pause());
+    stopBtn.addEventListener('click', () => {
+      vid.pause();
+      vid.currentTime = 0;
+    });
+
+    // Fullscreen toggle
+    fullscreenBtn.addEventListener('click', () => {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {
+          console.error(`Error attempting to enable fullscreen: ${err.message}`);
+        });
+      } else {
+        document.exitFullscreen();
+      }
+    });
+
+    // VR mode toggle
+    vrBtn.addEventListener('click', () => {
+      scene.enterVR();
+    });
+
+    // Video events
+    vid.addEventListener('timeupdate', updateProgress);
+    vid.addEventListener('loadedmetadata', () => {
+      timeDisplay.textContent = `0:00 / ${formatTime(vid.duration)}`;
+    });
+    
+    vid.addEventListener('progress', () => {
+      if (vid.buffered.length > 0) {
+        const bufferedEnd = vid.buffered.end(vid.buffered.length - 1);
+        const percent = (bufferedEnd / vid.duration) * 100;
+        loadingProgress.textContent = `${Math.round(percent)}% loaded`;
+      }
+    });
+
+    vid.addEventListener('canplaythrough', () => {
+      setTimeout(() => {
+        loadingScreen.style.opacity = '0';
         setTimeout(() => {
-          document.getElementById('arPrompt').style.display = 'none';
+          loadingScreen.style.display = 'none';
+          vid.play().catch(e => {
+            console.log("Autoplay prevented:", e);
+            playBtn.style.display = 'block';
+          });
+        }, 500);
+      }, 1000);
+    });
+
+    vid.addEventListener('ended', () => {
+      // Loop to next video
+      currentVideoIndex = (currentVideoIndex + 1) % videoSources.length;
+      vid.src = videoSources[currentVideoIndex].url;
+      vid.play();
+    });
+
+    // Handle AR mode
+    scene.addEventListener('enter-vr', () => {
+      controls.classList.add('hidden');
+      if (scene.is('ar-mode')) {
+        arPrompt.style.display = 'block';
+        setTimeout(() => {
+          arPrompt.style.display = 'none';
         }, 5000);
       }
     });
+
     scene.addEventListener('exit-vr', () => {
-      document.getElementById('controls').style.display = 'flex';
+      controls.classList.remove('hidden');
+    });
+
+    // Mobile AR detection
+    if (/Android|iPhone|iPad/i.test(navigator.userAgent)) {
+      enterAR.style.display = 'block';
+      enterAR.addEventListener('click', () => {
+        scene.enterAR();
+      });
+    }
+
+    // Initial autoplay with muted audio
+    vid.muted = true;
+    
+    // Handle visibility changes
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') {
+        vid.pause();
+      } else {
+        vid.play().catch(e => console.log('Playback resume prevented:', e));
+      }
+    });
+    
+    // Handle window resize
+    window.addEventListener('resize', () => {
+      const aspectRatio = 16/9;
+      const width = Math.min(6, window.innerWidth / 100);
+      mainVideo.setAttribute('width', width);
+      mainVideo.setAttribute('height', width / aspectRatio);
+    });
+    
+    // Initial size setup
+    window.dispatchEvent(new Event('resize'));
+    
+    // Touch controls for mobile
+    let lastTouchTime = 0;
+    scene.addEventListener('touchstart', (e) => {
+      const currentTime = new Date().getTime();
+      if (currentTime - lastTouchTime < 300) {
+        // Double tap detected - toggle controls
+        controls.classList.toggle('hidden');
+      }
+      lastTouchTime = currentTime;
     });
   </script>
 </body>
