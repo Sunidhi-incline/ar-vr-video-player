@@ -1,105 +1,153 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <title>AR/VR Video Player</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- A-Frame library -->
-    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
-    <!-- Optional: AR.js for AR support (marker-based) -->
-    <script src="https://cdn.jsdelivr.net/npm/aframe-ar@1.8.2/dist/aframe-ar.min.js"></script>
-    <style>
-      #video-controls {
-        position: absolute;
-        bottom: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        z-index: 100;
-        background: rgba(0,0,0,0.6);
-        padding: 10px 20px;
-        border-radius: 8px;
-        display: flex;
-        gap: 10px;
+<head>
+  <meta charset="UTF-8">
+  <title>AR/VR Video Player</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- A-Frame library -->
+  <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+  <style>
+    #video-controls {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      background: rgba(0,0,0,0.6);
+      padding: 10px 20px;
+      border-radius: 8px;
+      display: flex;
+      gap: 10px;
+    }
+    #video-controls button {
+      font-size: 16px;
+      padding: 6px 14px;
+      border: none;
+      border-radius: 5px;
+      background: #fff;
+      color: #333;
+      cursor: pointer;
+    }
+    #loading-message {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%,-50%);
+      color: #fff;
+      background: rgba(0,0,0,0.8);
+      padding: 20px 30px;
+      border-radius: 10px;
+      z-index: 200;
+      font-size: 1.2rem;
+      display: none;
+    }
+    #error-message {
+      position: absolute;
+      top: 10%;
+      left: 50%;
+      transform: translate(-50%,0);
+      color: #fff;
+      background: #c0392b;
+      padding: 15px 25px;
+      border-radius: 10px;
+      z-index: 300;
+      font-size: 1.2rem;
+      display: none;
+    }
+  </style>
+</head>
+<body style="margin: 0; background:#111;">
+
+  <div id="video-controls">
+    <button onclick="playVideo()">Play</button>
+    <button onclick="pauseVideo()">Pause</button>
+    <button onclick="stopVideo()">Stop</button>
+  </div>
+
+  <div id="loading-message">Loading video...</div>
+  <div id="error-message"></div>
+
+  <!-- Video element (hidden) -->
+  <video
+    id="myVideo"
+    src="https://raw.githubusercontent.com/Sunidhi-incline/ar-vr-video-player/gh-pages/myvideo.mp4"
+    crossorigin="anonymous"
+    loop
+    webkit-playsinline
+    playsinline
+    style="display:none"
+    preload="auto"
+  ></video>
+
+  <!-- A-Frame Scene -->
+  <a-scene
+    vr-mode-ui="enabled: true"
+    embedded
+  >
+    <a-sky color="#222"></a-sky>
+    <a-video 
+      src="#myVideo" 
+      width="8" 
+      height="4.5" 
+      position="0 2 -8" 
+      rotation="0 0 0"
+      id="videoScreen"
+    ></a-video>
+    <a-entity camera look-controls position="0 1.6 0"></a-entity>
+  </a-scene>
+
+  <script>
+    const video = document.getElementById('myVideo');
+    const loadingMsg = document.getElementById('loading-message');
+    const errorMsg = document.getElementById('error-message');
+
+    // Show loader initially
+    loadingMsg.style.display = "block";
+
+    // Handle video loading
+    video.addEventListener('canplaythrough', () => {
+      loadingMsg.style.display = "none";
+    });
+
+    video.addEventListener('error', function(e) {
+      loadingMsg.style.display = "none";
+      errorMsg.style.display = "block";
+      errorMsg.textContent = 'Error loading video! Try reloading or use a different browser. If it keeps failing, try hosting your video on another service (like Dropbox, Google Drive with direct link, or your own server).';
+    });
+
+    function playVideo() {
+      video.play().then(() => {
+        loadingMsg.style.display = "none";
+        errorMsg.style.display = "none";
+      }).catch(err => {
+        errorMsg.style.display = "block";
+        errorMsg.textContent = 'Playback failed: ' + err.message;
+      });
+    }
+
+    function pauseVideo() {
+      video.pause();
+    }
+
+    function stopVideo() {
+      video.pause();
+      video.currentTime = 0;
+    }
+
+    // Force user interaction for autoplay policy
+    document.body.addEventListener('click', () => {
+      if (video.paused) {
+        playVideo();
       }
-      #video-controls button {
-        font-size: 16px;
-        padding: 6px 14px;
-        border: none;
-        border-radius: 5px;
-        background: #fff;
-        color: #333;
-        cursor: pointer;
-      }
-    </style>
-  </head>
-  <body style="margin: 0;">
+    }, { once: true });
 
-    <!-- Video Controls -->
-    <div id="video-controls">
-      <button onclick="playVideo()">Play</button>
-      <button onclick="pauseVideo()">Pause</button>
-      <button onclick="stopVideo()">Stop</button>
-    </div>
+    // Try to load the video (may fail if CORS or browser streaming unsupported)
+    video.load();
+  </script>
 
-    <!-- Video element (hidden) -->
-    <video
-      id="myVideo"
-      src="https://raw.githubusercontent.com/Sunidhi-incline/ar-vr-video-player/gh-pages/myvideo.mp4"
-      crossorigin="anonymous"
-      loop
-      style="display:none"
-    ></video>
-
-    <!-- A-Frame Scene -->
-    <a-scene
-      vr-mode-ui="enabled: true"
-      embedded
-      arjs="sourceType: webcam; debugUIEnabled: false;"
-    >
-      <!-- Sky background -->
-      <a-sky color="#222"></a-sky>
-
-      <!-- Large video screen in 3D space -->
-      <a-video 
-        src="#myVideo" 
-        width="8" 
-        height="4.5" 
-        position="0 2 -8" 
-        rotation="0 0 0"
-        id="videoScreen"
-      ></a-video>
-
-      <!-- Camera -->
-      <a-entity camera look-controls position="0 1.6 0"></a-entity>
-    </a-scene>
-
-    <script>
-      const video = document.getElementById('myVideo');
-
-      function playVideo() {
-        video.play();
-      }
-
-      function pauseVideo() {
-        video.pause();
-      }
-
-      function stopVideo() {
-        video.pause();
-        video.currentTime = 0;
-      }
-
-      // Optional: Play video on user gesture for autoplay policies
-      document.body.addEventListener('click', () => {
-        if (video.paused) {
-          video.play();
-        }
-      }, { once: true });
-    </script>
-
-    <p style="position:absolute;top:5px;left:50%;transform:translateX(-50%);color:#eee;z-index:999;">
-      Now playing: <b>myvideo.mp4</b> from your repository.<br>
-      Works in VR/AR on supported browsers/devices.
-    </p>
-  </body>
+  <p style="position:absolute;top:5px;left:50%;transform:translateX(-50%);color:#eee;z-index:999;">
+    Now playing: <b>myvideo.mp4</b> from your repository.<br>
+    Works in VR/AR on supported browsers/devices.
+  </p>
+</body>
 </html>
