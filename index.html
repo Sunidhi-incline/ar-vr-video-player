@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Immersive VR/AR Video Experience</title>
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
     <style>
@@ -83,52 +84,6 @@
             font-size: 1rem;
             margin-bottom: 30px;
             font-weight: 400;
-        }
-
-        /* Mode Selector */
-        .mode-selector {
-            margin-bottom: 30px;
-        }
-
-        .mode-title {
-            color: #40e0ff;
-            font-size: 1.2rem;
-            margin-bottom: 15px;
-            font-weight: 700;
-        }
-
-        .mode-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-
-        .mode-btn {
-            padding: 15px 10px;
-            background: linear-gradient(145deg, rgba(20, 20, 50, 0.8), rgba(40, 40, 80, 0.8));
-            border: 2px solid rgba(64, 224, 255, 0.2);
-            border-radius: 12px;
-            color: rgba(255, 255, 255, 0.8);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-family: 'Orbitron', monospace;
-            font-weight: 600;
-            font-size: 0.9rem;
-        }
-
-        .mode-btn:hover {
-            border-color: #40e0ff;
-            background: linear-gradient(145deg, rgba(30, 30, 60, 0.9), rgba(50, 50, 90, 0.9));
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(64, 224, 255, 0.2);
-        }
-
-        .mode-btn.active {
-            background: linear-gradient(145deg, rgba(64, 224, 255, 0.2), rgba(64, 224, 255, 0.1));
-            border-color: #40e0ff;
-            color: #40e0ff;
-            box-shadow: 0 0 20px rgba(64, 224, 255, 0.3);
         }
 
         /* File Upload */
@@ -251,7 +206,7 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* Responsive Design */
+        /* Mobile Responsive Design */
         @media (max-width: 768px) {
             #mainPanel {
                 min-width: 90%;
@@ -262,9 +217,44 @@
                 font-size: 2rem;
             }
             
-            .mode-grid {
-                grid-template-columns: 1fr;
+            #vrControls {
+                bottom: 15px;
+                padding: 10px 15px;
+                gap: 15px;
+            }
+            
+            .vr-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            #mainPanel {
+                min-width: 95%;
+                padding: 25px 15px;
+            }
+            
+            .logo {
+                font-size: 1.8rem;
+            }
+            
+            .upload-btn {
+                padding: 15px;
+                font-size: 1rem;
+            }
+            
+            #vrControls {
+                bottom: 10px;
+                padding: 8px 12px;
                 gap: 10px;
+            }
+            
+            .vr-btn {
+                width: 35px;
+                height: 35px;
+                font-size: 0.9rem;
             }
         }
 
@@ -281,17 +271,8 @@
     <!-- Main Control Panel -->
     <div id="mainPanel">
         <div class="logo">⚡ NEXUS VR</div>
-        <div class="tagline">Immersive Video Experience Platform</div>
+        <div class="tagline">Immersive Theater Experience</div>
         
-        <div class="mode-selector">
-            <div class="mode-title">SELECT REALITY MODE</div>
-            <div class="mode-grid">
-                <button class="mode-btn active" data-mode="theater">🎭 THEATER</button>
-                <button class="mode-btn" data-mode="dome">🌌 DOME</button>
-                <button class="mode-btn" data-mode="cinema">🎬 CINEMA</button>
-            </div>
-        </div>
-
         <div class="upload-zone">
             <input type="file" id="videoFile" class="file-input" accept="video/*" />
             <label for="videoFile" class="upload-btn">
@@ -300,7 +281,7 @@
         </div>
 
         <div class="status-text">
-            Your regular videos will be enhanced with immersive VR/AR environments.<br>
+            Your video will be enhanced with immersive Theater VR environment.<br>
             Supports: MP4, WebM, MOV, AVI formats
         </div>
     </div>
@@ -308,11 +289,11 @@
     <!-- Loading Overlay -->
     <div class="loading-overlay" id="loadingOverlay">
         <div class="loading-spinner"></div>
-        <div class="loading-text">INITIALIZING VR ENVIRONMENT...</div>
+        <div class="loading-text">INITIALIZING VR THEATER...</div>
     </div>
 
     <!-- VR Scene -->
-    <a-scene vr-mode-ui="enabled: true" background="color: #0a0a23">
+    <a-scene vr-mode-ui="enabled: true" background="color: #0a0a23" device-orientation-permission-ui="enabled: false">
         <a-assets>
             <!-- Assets will be added dynamically -->
         </a-assets>
@@ -324,7 +305,7 @@
         <a-light type="ambient" color="#404040" intensity="0.4"></a-light>
         <a-light type="directional" position="0 10 5" color="#40e0ff" intensity="0.3"></a-light>
 
-        <!-- Main Video Screen -->
+        <!-- Main Video Screen - Responsive sizing -->
         <a-video
             id="videoScreen"
             width="16"
@@ -335,7 +316,7 @@
             material="shader: flat"
         ></a-video>
 
-        <!-- Theater Environment Elements -->
+        <!-- Theater Environment -->
         <a-entity id="theaterElements">
             <!-- Floor -->
             <a-plane 
@@ -350,17 +331,21 @@
             <!-- Side walls with glow -->
             <a-box position="-12 3 -8" width="2" height="8" depth="20" color="#2d1b69" material="emissive: #40e0ff; emissiveIntensity: 0.1"></a-box>
             <a-box position="12 3 -8" width="2" height="8" depth="20" color="#2d1b69" material="emissive: #40e0ff; emissiveIntensity: 0.1"></a-box>
-        </a-entity>
-
-        <!-- Cinema Environment -->
-        <a-entity id="cinemaElements" visible="false">
-            <!-- Curved screen background -->
-            <a-cylinder position="0 2 -10" radius="12" height="8" theta-start="45" theta-length="90" color="#1a1a3e" material="side: back"></a-cylinder>
-        </a-entity>
-
-        <!-- Dome Environment -->
-        <a-entity id="domeElements" visible="false">
-            <a-sphere position="0 0 0" radius="20" color="#0a0a23" material="side: back; emissive: #40e0ff; emissiveIntensity: 0.05"></a-sphere>
+            
+            <!-- Theater seats -->
+            <a-entity id="seats">
+                <!-- Row 1 -->
+                <a-box position="-3 0.5 2" width="1" height="1" depth="0.8" color="#2d1b69"></a-box>
+                <a-box position="-1 0.5 2" width="1" height="1" depth="0.8" color="#2d1b69"></a-box>
+                <a-box position="1 0.5 2" width="1" height="1" depth="0.8" color="#2d1b69"></a-box>
+                <a-box position="3 0.5 2" width="1" height="1" depth="0.8" color="#2d1b69"></a-box>
+                
+                <!-- Row 2 -->
+                <a-box position="-3 0.5 4" width="1" height="1" depth="0.8" color="#2d1b69"></a-box>
+                <a-box position="-1 0.5 4" width="1" height="1" depth="0.8" color="#2d1b69"></a-box>
+                <a-box position="1 0.5 4" width="1" height="1" depth="0.8" color="#2d1b69"></a-box>
+                <a-box position="3 0.5 4" width="1" height="1" depth="0.8" color="#2d1b69"></a-box>
+            </a-entity>
         </a-entity>
 
         <!-- Floating particles for ambiance -->
@@ -376,10 +361,10 @@
             </a-sphere>
         </a-entity>
 
-        <!-- Camera with enhanced controls -->
+        <!-- Camera with enhanced controls and device responsiveness -->
         <a-entity 
             camera 
-            look-controls="pointerLockEnabled: true" 
+            look-controls="pointerLockEnabled: true; touchEnabled: true" 
             wasd-controls="acceleration: 20"
             position="0 1.6 0">
             
@@ -404,10 +389,57 @@
     </div>
 
     <script>
+        // Device detection and responsive settings
+        function getDeviceType() {
+            const userAgent = navigator.userAgent;
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+            const isTablet = /iPad|Android(?=.*Mobile)/i.test(userAgent);
+            
+            return {
+                isMobile: isMobile && !isTablet,
+                isTablet: isTablet,
+                isDesktop: !isMobile
+            };
+        }
+
+        // Adjust VR scene based on device
+        function adjustForDevice() {
+            const device = getDeviceType();
+            const videoScreen = document.getElementById('videoScreen');
+            const camera = document.querySelector('[camera]');
+            
+            if (device.isMobile) {
+                // Mobile optimizations
+                videoScreen.setAttribute('width', '12');
+                videoScreen.setAttribute('height', '7');
+                videoScreen.setAttribute('position', '0 2 -6');
+                camera.setAttribute('position', '0 1.2 0');
+                
+                // Enable touch controls
+                camera.setAttribute('look-controls', 'pointerLockEnabled: false; touchEnabled: true');
+                
+            } else if (device.isTablet) {
+                // Tablet optimizations
+                videoScreen.setAttribute('width', '14');
+                videoScreen.setAttribute('height', '8');
+                videoScreen.setAttribute('position', '0 2 -7');
+                camera.setAttribute('position', '0 1.4 0');
+                
+            } else {
+                // Desktop settings (default)
+                videoScreen.setAttribute('width', '16');
+                videoScreen.setAttribute('height', '9');
+                videoScreen.setAttribute('position', '0 2 -8');
+                camera.setAttribute('position', '0 1.6 0');
+            }
+        }
+
         // Initialize particles background
         function createParticles() {
             const particlesContainer = document.getElementById('particles');
-            for (let i = 0; i < 50; i++) {
+            const particleCount = getDeviceType().isMobile ? 30 : 50; // Fewer particles on mobile
+            
+            for (let i = 0; i < particleCount; i++) {
                 const particle = document.createElement('div');
                 particle.className = 'particle';
                 particle.style.left = Math.random() * 100 + '%';
@@ -417,59 +449,6 @@
                 particle.style.animationDuration = (Math.random() * 4 + 4) + 's';
                 particlesContainer.appendChild(particle);
             }
-        }
-
-        // Mode switching
-        let currentMode = 'theater';
-        const modeButtons = document.querySelectorAll('.mode-btn');
-        const environments = {
-            theater: document.getElementById('theaterElements'),
-            cinema: document.getElementById('cinemaElements'),
-            dome: document.getElementById('domeElements')
-        };
-
-        modeButtons.forEach(btn => {
-            btn.addEventListener('click', () => {
-                modeButtons.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                
-                const newMode = btn.dataset.mode;
-                switchEnvironment(newMode);
-            });
-        });
-
-        function switchEnvironment(mode) {
-            // Hide all environments
-            Object.values(environments).forEach(env => {
-                if (env) env.setAttribute('visible', false);
-            });
-            
-            // Show selected environment
-            if (environments[mode]) {
-                environments[mode].setAttribute('visible', true);
-            }
-            
-            // Adjust video position based on mode
-            const videoScreen = document.getElementById('videoScreen');
-            switch (mode) {
-                case 'theater':
-                    videoScreen.setAttribute('position', '0 2 -8');
-                    videoScreen.setAttribute('width', '16');
-                    videoScreen.setAttribute('height', '9');
-                    break;
-                case 'cinema':
-                    videoScreen.setAttribute('position', '0 2 -10');
-                    videoScreen.setAttribute('width', '18');
-                    videoScreen.setAttribute('height', '10');
-                    break;
-                case 'dome':
-                    videoScreen.setAttribute('position', '0 3 -6');
-                    videoScreen.setAttribute('width', '20');
-                    videoScreen.setAttribute('height', '11');
-                    break;
-            }
-            
-            currentMode = mode;
         }
 
         // File upload handling
@@ -517,6 +496,15 @@
                 videoElement.setAttribute('playsinline', '');
                 videoElement.setAttribute('webkit-playsinline', '');
                 videoElement.setAttribute('controls', false);
+                
+                // Adjust video quality based on device
+                const device = getDeviceType();
+                if (device.isMobile) {
+                    videoElement.setAttribute('preload', 'metadata'); // Save bandwidth on mobile
+                } else {
+                    videoElement.setAttribute('preload', 'auto');
+                }
+                
                 assets.appendChild(videoElement);
                 
                 // Apply to video screen
@@ -526,10 +514,20 @@
                 
                 currentVideo = videoElement;
                 
+                // Adjust scene for device
+                adjustForDevice();
+                
                 // Hide loading and show controls
                 setTimeout(() => {
                     loadingOverlay.style.display = 'none';
                     vrControls.style.display = 'flex';
+                    
+                    // Auto-enter VR mode on mobile if supported
+                    if (device.isMobile && document.querySelector('a-scene').enterVR) {
+                        setTimeout(() => {
+                            document.querySelector('a-scene').enterVR();
+                        }, 1000);
+                    }
                 }, 1000);
                 
             }, 1500);
@@ -555,13 +553,22 @@
             const scene = document.querySelector('a-scene');
             if (scene.requestFullscreen) {
                 scene.requestFullscreen();
+            } else if (scene.webkitRequestFullscreen) {
+                scene.webkitRequestFullscreen();
+            } else if (scene.mozRequestFullScreen) {
+                scene.mozRequestFullScreen();
             }
+        });
+
+        // Handle orientation changes on mobile
+        window.addEventListener('orientationchange', () => {
+            setTimeout(adjustForDevice, 500);
         });
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             createParticles();
-            switchEnvironment('theater');
+            adjustForDevice();
         });
     </script>
 </body>
