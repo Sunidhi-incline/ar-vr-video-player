@@ -1,405 +1,105 @@
 <!DOCTYPE html>
-<html>
-<head>
-  <title>Immersive Video Experience</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
-  <style>
-    body, html {
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
-      height: 100%;
-      font-family: 'Arial', sans-serif;
-      background: #000;
-    }
-    
-    #loading {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: #000;
-      color: white;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-      transition: opacity 0.5s;
-    }
-    
-    .loader {
-      border: 5px solid #f3f3f3;
-      border-top: 5px solid #3498db;
-      border-radius: 50%;
-      width: 50px;
-      height: 50px;
-      animation: spin 2s linear infinite;
-      margin-bottom: 20px;
-    }
-    
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    
-    #controls {
-      position: absolute;
-      left: 50%;
-      bottom: 30px;
-      transform: translateX(-50%);
-      z-index: 10;
-      background: rgba(0,0,0,0.7);
-      padding: 12px 24px;
-      border-radius: 30px;
-      display: flex;
-      gap: 15px;
-      align-items: center;
-      transition: bottom 0.3s;
-      backdrop-filter: blur(5px);
-    }
-    
-    #controls.hidden {
-      bottom: -60px;
-    }
-    
-    #controls button {
-      background: rgba(255,255,255,0.2);
-      color: white;
-      border: none;
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      cursor: pointer;
-      font-size: 18px;
-      transition: all 0.2s;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-    
-    #controls button:hover {
-      background: rgba(255,255,255,0.3);
-      transform: scale(1.1);
-    }
-    
-    #progress-container {
-      flex-grow: 1;
-      height: 5px;
-      background: rgba(255,255,255,0.2);
-      border-radius: 3px;
-      cursor: pointer;
-      position: relative;
-    }
-    
-    #progress-bar {
-      height: 100%;
-      width: 0%;
-      background: #4285f4;
-      border-radius: 3px;
-      transition: width 0.1s;
-    }
-    
-    #time-display {
-      color: white;
-      font-size: 14px;
-      min-width: 100px;
-      text-align: center;
-    }
-    
-    .ar-prompt { 
-      position: absolute; 
-      bottom: 120px; 
-      width: 100%; 
-      text-align: center; 
-      color: white; 
-      font-family: Arial; 
-      text-shadow: 0 0 5px rgba(0,0,0,0.8);
-      font-size: 18px;
-      z-index: 5;
-      padding: 15px;
-      background: rgba(0,0,0,0.5);
-      display: none;
-    }
-    
-    #enter-ar {
-      position: absolute;
-      bottom: 30px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #4285f4;
-      color: white;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 30px;
-      cursor: pointer;
-      font-size: 16px;
-      z-index: 11;
-      display: none;
-    }
-    
-    /* Touch instructions */
-    #touch-instructions {
-      position: absolute;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      color: white;
-      background: rgba(0,0,0,0.5);
-      padding: 10px 20px;
-      border-radius: 10px;
-      text-align: center;
-      display: none;
-      z-index: 10;
-    }
-  </style>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-</head>
-<body>
-  <!-- Loading Screen -->
-  <div id="loading">
-    <div class="loader"></div>
-    <p>Loading immersive experience...</p>
-  </div>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>AR/VR Video Player</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- A-Frame library -->
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <!-- Optional: AR.js for AR support (marker-based) -->
+    <script src="https://cdn.jsdelivr.net/npm/aframe-ar@1.8.2/dist/aframe-ar.min.js"></script>
+    <style>
+      #video-controls {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 100;
+        background: rgba(0,0,0,0.6);
+        padding: 10px 20px;
+        border-radius: 8px;
+        display: flex;
+        gap: 10px;
+      }
+      #video-controls button {
+        font-size: 16px;
+        padding: 6px 14px;
+        border: none;
+        border-radius: 5px;
+        background: #fff;
+        color: #333;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body style="margin: 0;">
 
-  <!-- Touch Instructions -->
-  <div id="touch-instructions">
-    Double-tap to show/hide controls<br>
-    Pinch to resize video
-  </div>
-  
-  <!-- AR Mode Button -->
-  <button id="enter-ar">Enter AR Mode</button>
-  
-  <!-- Video Controls -->
-  <div id="controls">
-    <button id="playBtn" title="Play"><i class="fas fa-play"></i></button>
-    <button id="pauseBtn" title="Pause"><i class="fas fa-pause"></i></button>
-    <button id="stopBtn" title="Stop"><i class="fas fa-stop"></i></button>
-    <div id="progress-container">
-      <div id="progress-bar"></div>
+    <!-- Video Controls -->
+    <div id="video-controls">
+      <button onclick="playVideo()">Play</button>
+      <button onclick="pauseVideo()">Pause</button>
+      <button onclick="stopVideo()">Stop</button>
     </div>
-    <div id="time-display">0:00 / 0:00</div>
-    <button id="vrBtn" title="Enter VR"><i class="fas fa-vr-cardboard"></i></button>
-  </div>
 
-  <!-- AR Placement Prompt -->
-  <div class="ar-prompt" id="arPrompt">
-    <i class="fas fa-arrows-alt"></i> Move device to place video in your space
-  </div>
+    <!-- Video element (hidden) -->
+    <video
+      id="myVideo"
+      src="https://raw.githubusercontent.com/Sunidhi-incline/ar-vr-video-player/gh-pages/myvideo.mp4"
+      crossorigin="anonymous"
+      loop
+      style="display:none"
+    ></video>
 
-  <a-scene xr-mode-ui="enabled: true" vr-mode-ui="enabled: true">
-    <a-assets>
-      <!-- Using GitHub-hosted video -->
-      <video id="arVideo" 
-             src="https://raw.githubusercontent.com/Sunidhi-incline/ar-vr-video-player/gh-pages/myvideo.mp4"
-             crossorigin="anonymous"
-             webkit-playsinline
-             playsinline
-             preload="auto"></video>
-    </a-assets>
+    <!-- A-Frame Scene -->
+    <a-scene
+      vr-mode-ui="enabled: true"
+      embedded
+      arjs="sourceType: webcam; debugUIEnabled: false;"
+    >
+      <!-- Sky background -->
+      <a-sky color="#222"></a-sky>
 
-    <!-- Video screen with pinch-to-zoom -->
-    <a-entity id="video-screen" position="0 1.6 -4" scale="1 1 1">
+      <!-- Large video screen in 3D space -->
       <a-video 
-        id="main-video"
-        src="#arVideo" 
-        width="6" 
-        height="3.375"
-        position="0 0 0"
+        src="#myVideo" 
+        width="8" 
+        height="4.5" 
+        position="0 2 -8" 
+        rotation="0 0 0"
+        id="videoScreen"
       ></a-video>
-    </a-entity>
-    
-    <a-camera position="0 1.6 0" wasd-controls="enabled: false"></a-camera>
-  </a-scene>
-  
-  <script>
-    // Get DOM elements
-    const loadingScreen = document.getElementById('loading');
-    const controls = document.getElementById('controls');
-    const progressContainer = document.getElementById('progress-container');
-    const progressBar = document.getElementById('progress-bar');
-    const timeDisplay = document.getElementById('time-display');
-    const playBtn = document.getElementById('playBtn');
-    const pauseBtn = document.getElementById('pauseBtn');
-    const stopBtn = document.getElementById('stopBtn');
-    const vrBtn = document.getElementById('vrBtn');
-    const enterAR = document.getElementById('enter-ar');
-    const arPrompt = document.getElementById('arPrompt');
-    const vid = document.getElementById('arVideo');
-    const scene = document.querySelector('a-scene');
-    const videoScreen = document.getElementById('video-screen');
-    const mainVideo = document.getElementById('main-video');
-    const touchInstructions = document.getElementById('touch-instructions');
 
-    // Format time display
-    function formatTime(seconds) {
-      const min = Math.floor(seconds / 60);
-      const sec = Math.floor(seconds % 60);
-      return `${min}:${sec < 10 ? '0' : ''}${sec}`;
-    }
+      <!-- Camera -->
+      <a-entity camera look-controls position="0 1.6 0"></a-entity>
+    </a-scene>
 
-    // Update progress bar
-    function updateProgress() {
-      if (vid.duration) {
-        const percent = (vid.currentTime / vid.duration) * 100;
-        progressBar.style.width = `${percent}%`;
-        timeDisplay.textContent = `${formatTime(vid.currentTime)} / ${formatTime(vid.duration)}`;
+    <script>
+      const video = document.getElementById('myVideo');
+
+      function playVideo() {
+        video.play();
       }
-    }
 
-    // Seek functionality
-    progressContainer.addEventListener('click', (e) => {
-      const rect = progressContainer.getBoundingClientRect();
-      const pos = (e.clientX - rect.left) / rect.width;
-      vid.currentTime = pos * vid.duration;
-    });
-
-    // Playback controls
-    playBtn.addEventListener('click', () => vid.play());
-    pauseBtn.addEventListener('click', () => vid.pause());
-    stopBtn.addEventListener('click', () => {
-      vid.pause();
-      vid.currentTime = 0;
-    });
-
-    // VR mode toggle
-    vrBtn.addEventListener('click', () => {
-      scene.enterVR();
-    });
-
-    // Video events
-    vid.addEventListener('timeupdate', updateProgress);
-    vid.addEventListener('loadedmetadata', () => {
-      timeDisplay.textContent = `0:00 / ${formatTime(vid.duration)}`;
-    });
-    
-    vid.addEventListener('canplaythrough', () => {
-      setTimeout(() => {
-        loadingScreen.style.opacity = '0';
-        setTimeout(() => {
-          loadingScreen.style.display = 'none';
-          vid.play().catch(e => {
-            console.log("Autoplay prevented:", e);
-          });
-        }, 500);
-      }, 1000);
-    });
-
-    // Handle AR mode
-    scene.addEventListener('enter-vr', () => {
-      controls.classList.add('hidden');
-      if (scene.is('ar-mode')) {
-        arPrompt.style.display = 'block';
-        setTimeout(() => {
-          arPrompt.style.display = 'none';
-        }, 5000);
+      function pauseVideo() {
+        video.pause();
       }
-    });
 
-    scene.addEventListener('exit-vr', () => {
-      controls.classList.remove('hidden');
-    });
+      function stopVideo() {
+        video.pause();
+        video.currentTime = 0;
+      }
 
-    // Mobile AR detection
-    if (/Android|iPhone|iPad/i.test(navigator.userAgent)) {
-      enterAR.style.display = 'block';
-      touchInstructions.style.display = 'block';
-      
-      enterAR.addEventListener('click', () => {
-        scene.enterAR();
-      });
-      
-      // Hide instructions after 5 seconds
-      setTimeout(() => {
-        touchInstructions.style.opacity = '0';
-        setTimeout(() => {
-          touchInstructions.style.display = 'none';
-        }, 1000);
-      }, 5000);
-    }
-
-    // Initial autoplay with muted audio
-    vid.muted = true;
-    
-    // Handle visibility changes
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'hidden') {
-        vid.pause();
-      } else {
-        vid.play().catch(e => console.log('Playback resume prevented:', e));
-      }
-    });
-    
-    // Touch controls for mobile
-    let lastTouchTime = 0;
-    scene.addEventListener('touchstart', (e) => {
-      const currentTime = new Date().getTime();
-      if (currentTime - lastTouchTime < 300) {
-        // Double tap detected - toggle controls
-        controls.classList.toggle('hidden');
-      }
-      lastTouchTime = currentTime;
-    });
-    
-    // Pinch-to-zoom for video scaling
-    let initialDistance = null;
-    let initialScale = videoScreen.getAttribute('scale');
-    
-    scene.addEventListener('touchstart', (e) => {
-      if (e.touches.length === 2) {
-        initialDistance = Math.hypot(
-          e.touches[0].pageX - e.touches[1].pageX,
-          e.touches[0].pageY - e.touches[1].pageY
-        );
-        initialScale = videoScreen.getAttribute('scale') || {x:1, y:1, z:1};
-      }
-    });
-    
-    scene.addEventListener('touchmove', (e) => {
-      if (e.touches.length === 2 && initialDistance !== null) {
-        e.preventDefault();
-        const currentDistance = Math.hypot(
-          e.touches[0].pageX - e.touches[1].pageX,
-          e.touches[0].pageY - e.touches[1].pageY
-        );
-        
-        const scaleFactor = currentDistance / initialDistance;
-        const newScale = {
-          x: initialScale.x * scaleFactor,
-          y: initialScale.y * scaleFactor,
-          z: initialScale.z * scaleFactor
-        };
-        
-        // Limit scale between 0.5x and 2x
-        newScale.x = Math.max(0.5, Math.min(2, newScale.x));
-        newScale.y = Math.max(0.5, Math.min(2, newScale.y));
-        newScale.z = Math.max(0.5, Math.min(2, newScale.z));
-        
-        videoScreen.setAttribute('scale', newScale);
-      }
-    });
-    
-    scene.addEventListener('touchend', () => {
-      initialDistance = null;
-    });
-    
-    // Show controls when mouse moves
-    let mouseTimer;
-    document.addEventListener('mousemove', () => {
-      controls.classList.remove('hidden');
-      clearTimeout(mouseTimer);
-      mouseTimer = setTimeout(() => {
-        if (!scene.is('vr-mode') && !scene.is('ar-mode')) {
-          controls.classList.add('hidden');
+      // Optional: Play video on user gesture for autoplay policies
+      document.body.addEventListener('click', () => {
+        if (video.paused) {
+          video.play();
         }
-      }, 3000);
-    });
-    
-    // Initial show controls
-    setTimeout(() => controls.classList.add('hidden'), 5000);
-  </script>
-</body>
+      }, { once: true });
+    </script>
+
+    <p style="position:absolute;top:5px;left:50%;transform:translateX(-50%);color:#eee;z-index:999;">
+      Now playing: <b>myvideo.mp4</b> from your repository.<br>
+      Works in VR/AR on supported browsers/devices.
+    </p>
+  </body>
 </html>
