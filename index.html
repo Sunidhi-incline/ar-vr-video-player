@@ -184,7 +184,6 @@
             border-radius: 15px;
             margin-top: 15px;
             font-size: 1rem;
-            display: none;
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
@@ -302,6 +301,49 @@
             }
         }
 
+        .info-box {
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            max-width: 800px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .info-box h2 {
+            color: #00c9ff;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .info-content {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .info-section {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .info-section h3 {
+            color: #92fe9d;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .info-section ul {
+            padding-left: 20px;
+        }
+
+        .info-section li {
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+
         @media (max-width: 768px) {
             h1 {
                 font-size: 2.2rem;
@@ -319,10 +361,6 @@
             
             .controls {
                 padding: 15px;
-            }
-            
-            .device-message {
-                display: block;
             }
             
             .vr-mode-btn {
@@ -359,7 +397,7 @@
     <div class="container">
         <header>
             <h1>Immersive AR/VR Video Player</h1>
-            <p class="subtitle">Experience your videos in a simulated AR/VR environment with full playback controls and zoom functionality</p>
+            <p class="subtitle">Experience videos in a simulated AR/VR environment with full playback controls</p>
         </header>
         
         <div class="player-container">
@@ -370,7 +408,7 @@
                     <div class="loading-progress-inner" id="loadingProgress"></div>
                 </div>
             </div>
-            <video id="videoPlayer">
+            <video id="videoPlayer" crossorigin="anonymous">
                 <source src="https://drive.google.com/uc?export=download&id=16r1RnkY0MQRdxG6Bfty_z2d-r53wOM9u" type="video/mp4">
                 Your browser does not support the video tag.
             </video>
@@ -418,6 +456,30 @@
         
         <div class="device-message">
             <i class="fas fa-mobile-alt"></i> Tip: Rotate your device for a more immersive experience
+        </div>
+        
+        <div class="info-box">
+            <h2><i class="fas fa-info-circle"></i> About CORS Issues & Solutions</h2>
+            <div class="info-content">
+                <div class="info-section">
+                    <h3><i class="fas fa-exclamation-triangle"></i> The Problem</h3>
+                    <ul>
+                        <li>Modern browsers block cross-origin requests for security</li>
+                        <li>Google Drive doesn't set proper CORS headers for direct video access</li>
+                        <li>This results in "Tracking Prevention blocked access" errors</li>
+                        <li>Videos won't play due to these security restrictions</li>
+                    </ul>
+                </div>
+                <div class="info-section">
+                    <h3><i class="fas fa-lightbulb"></i> The Solution</h3>
+                    <ul>
+                        <li>Use a CORS proxy to bypass restrictions</li>
+                        <li>Host videos on a server with proper CORS headers</li>
+                        <li>Use a service like Vimeo or YouTube for embedding</li>
+                        <li>For local testing, serve the video from the same domain</li>
+                    </ul>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -477,20 +539,29 @@
                     loading.style.display = 'none';
                     durationDisplay.textContent = formatTime(video.duration);
                     // Auto play after loading
-                    video.play();
+                    video.play().catch(e => {
+                        console.error("Autoplay failed:", e);
+                        document.querySelector('.loading-text').innerHTML = 
+                            '<i class="fas fa-exclamation-triangle"></i> Autoplay blocked<br>Click Play button to start';
+                        loading.style.display = 'flex';
+                    });
                 }, 1000);
             });
             
             // Handle video errors
             video.addEventListener('error', function() {
+                console.error("Video error:", video.error);
                 loading.querySelector('.loading-text').innerHTML = 
-                    '<i class="fas fa-exclamation-triangle"></i> Error loading video<br>Please check the URL';
+                    '<i class="fas fa-exclamation-triangle"></i> Error loading video<br>' + 
+                    'CORS issue detected<br>Try hosting elsewhere';
                 loadingProgress.style.backgroundColor = '#ff4d4d';
             });
             
             // Play/Pause functionality
             playBtn.addEventListener('click', function() {
-                video.play();
+                video.play().catch(e => {
+                    console.error("Play failed:", e);
+                });
             });
             
             pauseBtn.addEventListener('click', function() {
@@ -526,9 +597,11 @@
             
             // Progress bar
             video.addEventListener('timeupdate', function() {
-                const progress = (video.currentTime / video.duration) * 100;
-                progressBar.style.width = `${progress}%`;
-                currentTimeDisplay.textContent = formatTime(video.currentTime);
+                if (video.duration) {
+                    const progress = (video.currentTime / video.duration) * 100;
+                    progressBar.style.width = `${progress}%`;
+                    currentTimeDisplay.textContent = formatTime(video.currentTime);
+                }
             });
             
             progressBar.parentElement.addEventListener('click', function(e) {
@@ -578,7 +651,7 @@
                     playerContainer.style.height = '80vh';
                     playerContainer.style.borderRadius = '0';
                     video.style.objectFit = 'cover';
-                    video.play();
+                    video.play().catch(e => console.error("VR play failed:", e));
                     
                     // Add VR effect
                     document.body.style.background = '#000';
@@ -600,6 +673,8 @@
             
             // Format time (MM:SS)
             function formatTime(seconds) {
+                if (isNaN(seconds)) return "0:00";
+                
                 const mins = Math.floor(seconds / 60);
                 const secs = Math.floor(seconds % 60);
                 return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
@@ -623,6 +698,14 @@
                     }
                 });
             }
+            
+            // Attempt to play video when user interacts with the page
+            document.addEventListener('click', function firstInteraction() {
+                video.play().catch(e => {
+                    console.log("Initial play attempt failed, waiting for user interaction");
+                });
+                document.removeEventListener('click', firstInteraction);
+            });
         });
     </script>
 </body>
