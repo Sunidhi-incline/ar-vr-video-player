@@ -206,6 +206,25 @@ text-align: center;
 100% { transform: rotate(360deg); }
 }
 
+/* Zoom Indicator */
+.zoom-indicator {
+position: fixed;
+bottom: 100px;
+left: 50%;
+transform: translateX(-50%);
+background: rgba(15, 15, 40, 0.8);
+border: 1px solid rgba(64, 224, 255, 0.3);
+border-radius: 20px;
+padding: 8px 20px;
+font-family: 'Orbitron', monospace;
+color: #40e0ff;
+font-size: 0.9rem;
+text-align: center;
+z-index: 997;
+display: none;
+box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
 /* Mobile Responsive Design */
 @media (max-width: 768px) {
 #mainPanel {
@@ -220,17 +239,21 @@ font-size: 2rem;
 #vrControls {
 bottom: 15px;
 padding: 10px 15px;
-                gap: 15px;
-                gap: 10px;
-                flex-wrap: wrap;
-                justify-content: center;
+gap: 15px;
+flex-wrap: wrap;
+justify-content: center;
 }
 
 .vr-btn {
 width: 40px;
 height: 40px;
-                font-size: 1rem;
-                font-size: 0.9rem;
+font-size: 1rem;
+}
+
+.zoom-indicator {
+bottom: 90px;
+font-size: 0.8rem;
+padding: 6px 15px;
 }
 }
 
@@ -251,19 +274,22 @@ font-size: 1rem;
 
 #vrControls {
 bottom: 10px;
-                padding: 8px 12px;
-                gap: 10px;
-                padding: 8px 10px;
-                gap: 8px;
-                flex-wrap: wrap;
-                justify-content: center;
+padding: 8px 10px;
+gap: 8px;
+flex-wrap: wrap;
+justify-content: center;
 }
 
 .vr-btn {
 width: 35px;
 height: 35px;
-                font-size: 0.9rem;
-                font-size: 0.8rem;
+font-size: 0.8rem;
+}
+
+.zoom-indicator {
+bottom: 85px;
+font-size: 0.75rem;
+padding: 5px 12px;
 }
 }
 
@@ -299,6 +325,11 @@ Supports: MP4, WebM, MOV, AVI formats
 <div class="loading-overlay" id="loadingOverlay">
 <div class="loading-spinner"></div>
 <div class="loading-text">INITIALIZING VR THEATER...</div>
+</div>
+
+<!-- Zoom Indicator -->
+<div class="zoom-indicator" id="zoomIndicator">
+ZOOM: <span id="zoomValue">100%</span>
 </div>
 
 <!-- VR Scene -->
@@ -394,6 +425,9 @@ animation__mouseleave="property: scale; to: 1 1 1; startEvents: mouseleave; dur:
 <button class="vr-btn" id="playBtn" title="Play">▶</button>
 <button class="vr-btn" id="pauseBtn" title="Pause">⏸</button>
 <button class="vr-btn" id="stopBtn" title="Stop">⏹</button>
+<button class="vr-btn" id="zoomOutBtn" title="Zoom Out">➖</button>
+<button class="vr-btn" id="zoomInBtn" title="Zoom In">➕</button>
+<button class="vr-btn" id="resetZoomBtn" title="Reset Zoom">↺</button>
 <button class="vr-btn" id="fullscreenBtn" title="Fullscreen">⛶</button>
 </div>
 
@@ -465,6 +499,8 @@ const fileInput = document.getElementById('videoFile');
 const mainPanel = document.getElementById('mainPanel');
 const loadingOverlay = document.getElementById('loadingOverlay');
 const vrControls = document.getElementById('vrControls');
+const zoomIndicator = document.getElementById('zoomIndicator');
+const zoomValue = document.getElementById('zoomValue');
 let currentVideo = null;
 
 fileInput.addEventListener('change', (event) => {
@@ -526,13 +562,15 @@ currentVideo = videoElement;
 // Adjust scene for device
 adjustForDevice();
 
-                // Reset zoom level when new video loads
-                currentZoomLevel = 1.0;
+// Reset zoom level when new video loads
+currentZoomLevel = 1.0;
+updateZoomIndicator();
                 
 // Hide loading and show controls
 setTimeout(() => {
 loadingOverlay.style.display = 'none';
 vrControls.style.display = 'flex';
+zoomIndicator.style.display = 'block';
 
 // Auto-enter VR mode on mobile if supported
 if (device.isMobile && document.querySelector('a-scene').enterVR) {
@@ -545,17 +583,22 @@ document.querySelector('a-scene').enterVR();
 }, 1500);
 }
 
-        // Zoom functionality
-        let currentZoomLevel = 1.0;
-        const minZoom = 0.3;
-        const maxZoom = 2.0;
-        const zoomStep = 0.2;
+// Zoom functionality
+let currentZoomLevel = 1.0;
+const minZoom = 0.3;
+const maxZoom = 2.0;
+const zoomStep = 0.2;
 
-        function updateVideoScale(scale) {
-            const videoScreen = document.getElementById('videoScreen');
-            videoScreen.setAttribute('scale', `${scale} ${scale} ${scale}`);
-            currentZoomLevel = scale;
-        }
+function updateVideoScale(scale) {
+const videoScreen = document.getElementById('videoScreen');
+videoScreen.setAttribute('scale', `${scale} ${scale} ${scale}`);
+currentZoomLevel = scale;
+updateZoomIndicator();
+}
+
+function updateZoomIndicator() {
+zoomValue.textContent = `${Math.round(currentZoomLevel * 100)}%`;
+}
 
 // VR Controls
 document.getElementById('playBtn').addEventListener('click', () => {
@@ -573,19 +616,23 @@ currentVideo.currentTime = 0;
 }
 });
 
-        document.getElementById('zoomOutBtn').addEventListener('click', () => {
-            if (currentZoomLevel > minZoom) {
-                const newZoom = Math.max(minZoom, currentZoomLevel - zoomStep);
-                updateVideoScale(newZoom);
-            }
-        });
+document.getElementById('zoomOutBtn').addEventListener('click', () => {
+if (currentZoomLevel > minZoom) {
+const newZoom = Math.max(minZoom, currentZoomLevel - zoomStep);
+updateVideoScale(newZoom);
+}
+});
 
-        document.getElementById('zoomInBtn').addEventListener('click', () => {
-            if (currentZoomLevel < maxZoom) {
-                const newZoom = Math.min(maxZoom, currentZoomLevel + zoomStep);
-                updateVideoScale(newZoom);
-            }
-        });
+document.getElementById('zoomInBtn').addEventListener('click', () => {
+if (currentZoomLevel < maxZoom) {
+const newZoom = Math.min(maxZoom, currentZoomLevel + zoomStep);
+updateVideoScale(newZoom);
+}
+});
+
+document.getElementById('resetZoomBtn').addEventListener('click', () => {
+updateVideoScale(1.0);
+});
 
 document.getElementById('fullscreenBtn').addEventListener('click', () => {
 const scene = document.querySelector('a-scene');
