@@ -14,10 +14,10 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
             color: white;
             min-height: 100vh;
-            overflow: hidden;
+            overflow-x: hidden;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -31,27 +31,29 @@
             flex-direction: column;
             align-items: center;
             gap: 20px;
+            z-index: 2;
         }
 
         header {
             text-align: center;
-            padding: 20px;
+            padding: 25px;
             width: 100%;
             background: rgba(0, 0, 0, 0.5);
-            border-radius: 15px;
+            border-radius: 20px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: 20px;
         }
 
         h1 {
             font-size: 2.8rem;
-            margin-bottom: 10px;
-            background: linear-gradient(to right, #ff7e5f, #feb47b);
+            margin-bottom: 15px;
+            background: linear-gradient(to right, #00c9ff, #92fe9d);
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
         }
 
         .subtitle {
@@ -67,11 +69,12 @@
             max-width: 900px;
             aspect-ratio: 16/9;
             background: rgba(0, 0, 0, 0.7);
-            border-radius: 15px;
+            border-radius: 20px;
             overflow: hidden;
             position: relative;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
-            border: 2px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            transition: all 0.5s ease;
         }
 
         .vr-effect {
@@ -90,6 +93,7 @@
             height: 100%;
             display: block;
             object-fit: cover;
+            transition: transform 0.5s ease;
         }
 
         .controls {
@@ -98,13 +102,13 @@
             left: 0;
             width: 100%;
             background: rgba(0, 0, 0, 0.7);
-            padding: 15px;
+            padding: 20px;
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: 10px;
+            gap: 15px;
             z-index: 3;
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(15px);
             transform: translateY(0);
             transition: transform 0.3s ease;
         }
@@ -114,25 +118,27 @@
         }
 
         .control-btn {
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.1);
             border: none;
             color: white;
-            width: 50px;
-            height: 50px;
+            width: 55px;
+            height: 55px;
             border-radius: 50%;
-            font-size: 1.2rem;
+            font-size: 1.3rem;
             cursor: pointer;
             transition: all 0.3s ease;
             display: flex;
             align-items: center;
             justify-content: center;
             backdrop-filter: blur(5px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
         }
 
         .control-btn:hover {
-            background: rgba(255, 255, 255, 0.25);
+            background: rgba(0, 200, 255, 0.3);
             transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(0, 200, 255, 0.5);
         }
 
         .control-btn:active {
@@ -141,69 +147,71 @@
 
         .zoom-controls {
             display: flex;
-            gap: 10px;
+            gap: 15px;
         }
 
         .progress-container {
             width: 100%;
-            height: 8px;
+            height: 10px;
             background: rgba(255, 255, 255, 0.1);
-            border-radius: 4px;
+            border-radius: 5px;
             cursor: pointer;
-            margin-top: 10px;
+            margin-top: 15px;
         }
 
         .progress-bar {
             height: 100%;
-            background: linear-gradient(to right, #ff7e5f, #feb47b);
-            border-radius: 4px;
+            background: linear-gradient(to right, #00c9ff, #92fe9d);
+            border-radius: 5px;
             width: 0%;
             position: relative;
+            transition: width 0.2s ease;
         }
 
         .time-display {
             display: flex;
             justify-content: space-between;
             width: 100%;
-            font-size: 0.9rem;
+            font-size: 1rem;
             opacity: 0.8;
-            margin-top: 5px;
+            margin-top: 10px;
         }
 
         .device-message {
             text-align: center;
             padding: 15px;
             background: rgba(0, 0, 0, 0.4);
-            border-radius: 10px;
-            margin-top: 10px;
-            font-size: 0.9rem;
+            border-radius: 15px;
+            margin-top: 15px;
+            font-size: 1rem;
             display: none;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .vr-mode-btn {
-            background: linear-gradient(45deg, #ff7e5f, #feb47b);
+            background: linear-gradient(45deg, #00c9ff, #92fe9d);
             border: none;
-            padding: 12px 25px;
+            padding: 15px 35px;
             border-radius: 50px;
-            color: white;
+            color: #0f2027;
             font-weight: bold;
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             cursor: pointer;
-            margin-top: 20px;
+            margin-top: 25px;
             transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 5px 25px rgba(0, 201, 255, 0.4);
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 15px;
         }
 
         .vr-mode-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 201, 255, 0.6);
         }
 
         .vr-mode-btn:active {
-            transform: translateY(1px);
+            transform: translateY(2px);
         }
 
         .loading {
@@ -212,27 +220,86 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(0, 0, 0, 0.8);
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             z-index: 4;
-            gap: 20px;
+            gap: 30px;
         }
 
         .spinner {
-            width: 50px;
-            height: 50px;
-            border: 5px solid rgba(255, 255, 255, 0.1);
-            border-top: 5px solid #ff7e5f;
+            width: 60px;
+            height: 60px;
+            border: 6px solid rgba(255, 255, 255, 0.1);
+            border-top: 6px solid #00c9ff;
             border-radius: 50%;
-            animation: spin 1s linear infinite;
+            animation: spin 1.5s linear infinite;
         }
 
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 1.3rem;
+            text-align: center;
+            max-width: 300px;
+        }
+
+        .loading-progress {
+            width: 80%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .loading-progress-inner {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(to right, #00c9ff, #92fe9d);
+            transition: width 0.5s ease;
+        }
+
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(0, 201, 255, 0.7);
+            border-radius: 50%;
+            animation: float 15s infinite linear;
+            box-shadow: 0 0 15px rgba(0, 201, 255, 0.7);
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0) translateX(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) translateX(100px);
+                opacity: 0;
+            }
         }
 
         @media (max-width: 768px) {
@@ -245,17 +312,22 @@
             }
             
             .control-btn {
-                width: 45px;
-                height: 45px;
-                font-size: 1rem;
+                width: 50px;
+                height: 50px;
+                font-size: 1.1rem;
             }
             
             .controls {
-                padding: 10px;
+                padding: 15px;
             }
             
             .device-message {
                 display: block;
+            }
+            
+            .vr-mode-btn {
+                padding: 12px 25px;
+                font-size: 1.1rem;
             }
         }
 
@@ -265,19 +337,25 @@
             }
             
             .control-btn {
-                width: 40px;
-                height: 40px;
-                font-size: 0.9rem;
+                width: 45px;
+                height: 45px;
+                font-size: 1rem;
             }
             
             .vr-mode-btn {
                 padding: 10px 20px;
                 font-size: 1rem;
             }
+            
+            .loading-text {
+                font-size: 1.1rem;
+            }
         }
     </style>
 </head>
 <body>
+    <div class="particles" id="particles"></div>
+    
     <div class="container">
         <header>
             <h1>Immersive AR/VR Video Player</h1>
@@ -287,7 +365,10 @@
         <div class="player-container">
             <div class="loading">
                 <div class="spinner"></div>
-                <p>Loading immersive experience...</p>
+                <p class="loading-text">Loading immersive experience...</p>
+                <div class="loading-progress">
+                    <div class="loading-progress-inner" id="loadingProgress"></div>
+                </div>
             </div>
             <video id="videoPlayer">
                 <source src="https://drive.google.com/uc?export=download&id=16r1RnkY0MQRdxG6Bfty_z2d-r53wOM9u" type="video/mp4">
@@ -354,20 +435,57 @@
             const durationDisplay = document.getElementById('duration');
             const vrModeBtn = document.getElementById('vrModeBtn');
             const loading = document.querySelector('.loading');
+            const loadingProgress = document.getElementById('loadingProgress');
             const playerContainer = document.querySelector('.player-container');
+            const particlesContainer = document.getElementById('particles');
             
             let isFullscreen = false;
             let zoomLevel = 1;
+            let vrMode = false;
+            
+            // Create background particles
+            createParticles();
+            
+            function createParticles() {
+                for (let i = 0; i < 50; i++) {
+                    const particle = document.createElement('div');
+                    particle.classList.add('particle');
+                    particle.style.left = `${Math.random() * 100}vw`;
+                    particle.style.top = `${Math.random() * 100}vh`;
+                    particle.style.animationDuration = `${15 + Math.random() * 20}s`;
+                    particle.style.animationDelay = `${Math.random() * 5}s`;
+                    particlesContainer.appendChild(particle);
+                }
+            }
             
             // Initialize video
             video.controls = false;
+            
+            // Simulate loading progress
+            let progress = 0;
+            const loadingInterval = setInterval(() => {
+                progress += Math.random() * 10;
+                if (progress >= 100) {
+                    clearInterval(loadingInterval);
+                }
+                loadingProgress.style.width = `${progress}%`;
+            }, 200);
             
             // Show loading until video can play
             video.addEventListener('canplay', function() {
                 setTimeout(() => {
                     loading.style.display = 'none';
                     durationDisplay.textContent = formatTime(video.duration);
+                    // Auto play after loading
+                    video.play();
                 }, 1000);
+            });
+            
+            // Handle video errors
+            video.addEventListener('error', function() {
+                loading.querySelector('.loading-text').innerHTML = 
+                    '<i class="fas fa-exclamation-triangle"></i> Error loading video<br>Please check the URL';
+                loadingProgress.style.backgroundColor = '#ff4d4d';
             });
             
             // Play/Pause functionality
@@ -382,6 +500,8 @@
             stopBtn.addEventListener('click', function() {
                 video.pause();
                 video.currentTime = 0;
+                progressBar.style.width = '0%';
+                currentTimeDisplay.textContent = '0:00';
             });
             
             // Zoom functionality
@@ -448,20 +568,33 @@
             
             // VR Mode Simulation
             vrModeBtn.addEventListener('click', function() {
-                playerContainer.classList.toggle('vr-mode');
-                if (playerContainer.classList.contains('vr-mode')) {
+                vrMode = !vrMode;
+                
+                if (vrMode) {
+                    playerContainer.classList.add('vr-mode');
                     vrModeBtn.innerHTML = '<i class="fas fa-times"></i> Exit VR Mode';
                     document.querySelector('h1').textContent = 'VR Mode Activated';
                     playerContainer.style.maxWidth = '100%';
-                    playerContainer.style.height = '100vh';
+                    playerContainer.style.height = '80vh';
+                    playerContainer.style.borderRadius = '0';
                     video.style.objectFit = 'cover';
                     video.play();
+                    
+                    // Add VR effect
+                    document.body.style.background = '#000';
+                    document.querySelector('header').style.display = 'none';
                 } else {
+                    playerContainer.classList.remove('vr-mode');
                     vrModeBtn.innerHTML = '<i class="fas fa-vr-cardboard"></i> Enter VR Mode';
                     document.querySelector('h1').textContent = 'Immersive AR/VR Video Player';
                     playerContainer.style.maxWidth = '900px';
                     playerContainer.style.height = '';
+                    playerContainer.style.borderRadius = '20px';
                     video.style.objectFit = 'cover';
+                    
+                    // Restore normal styling
+                    document.body.style.background = 'linear-gradient(135deg, #0f2027, #203a43, #2c5364)';
+                    document.querySelector('header').style.display = 'block';
                 }
             });
             
@@ -476,11 +609,12 @@
             if (window.DeviceOrientationEvent) {
                 window.addEventListener('deviceorientation', function(event) {
                     // Only apply effect in VR mode
-                    if (playerContainer.classList.contains('vr-mode')) {
-                        const gamma = event.gamma; // left to right
-                        const beta = event.beta; // front back
+                    if (vrMode) {
+                        const gamma = event.gamma; // left to right (-90 to 90)
+                        const beta = event.beta; // front back (-180 to 180)
                         
                         if (gamma !== null && beta !== null) {
+                            // Scale down the movement for a more comfortable experience
                             const rotateX = beta * 0.3;
                             const rotateY = gamma * 0.3;
                             
