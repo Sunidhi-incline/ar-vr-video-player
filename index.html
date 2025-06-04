@@ -3,449 +3,276 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AR/VR Video Experience</title>
-    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
-    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+    <title>Immersive AR/VR Video Player</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        
+
         body {
-            background: linear-gradient(135deg, #1a0a2e, #2d0b4b, #4a0b69);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
             color: white;
             min-height: 100vh;
-            overflow-x: hidden;
-            padding: 20px;
-            position: relative;
-        }
-        
-        .container {
-            max-width: 1200px;
-            width: 100%;
-            margin: 0 auto;
-            background: rgba(10, 5, 24, 0.85);
-            border-radius: 20px;
             overflow: hidden;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
         }
-        
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
         header {
             text-align: center;
-            padding: 40px 20px;
-            background: rgba(0, 0, 0, 0.3);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        header::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
+            padding: 20px;
             width: 100%;
-            height: 100%;
-            background: radial-gradient(circle, rgba(255,0,204,0.1) 0%, rgba(51,51,255,0.05) 70%, transparent 100%);
-            z-index: -1;
-        }
-        
-        h1 {
-            font-size: 3.5rem;
-            margin-bottom: 15px;
-            background: linear-gradient(to right, #ff00cc, #3333ff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-            letter-spacing: 1px;
-        }
-        
-        .subtitle {
-            font-size: 1.4rem;
-            color: #bbb;
-            max-width: 700px;
-            margin: 0 auto;
-            line-height: 1.6;
-        }
-        
-        .content {
-            display: flex;
-            flex-wrap: wrap;
-            padding: 30px;
-            gap: 30px;
-        }
-        
-        .panel {
-            flex: 1;
-            min-width: 300px;
-            background: rgba(20, 10, 40, 0.7);
+            background: rgba(0, 0, 0, 0.5);
             border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
-        
-        .panel-title {
-            color: #ff00cc;
-            margin-bottom: 25px;
-            font-size: 2rem;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            position: relative;
-            padding-bottom: 10px;
+
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            background: linear-gradient(to right, #ff7e5f, #feb47b);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         }
-        
-        .panel-title::after {
-            content: "";
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .player-container {
+            width: 100%;
+            max-width: 900px;
+            aspect-ratio: 16/9;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .vr-effect {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, transparent, rgba(0, 0, 0, 0.8));
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        #videoPlayer {
+            width: 100%;
+            height: 100%;
+            display: block;
+            object-fit: cover;
+        }
+
+        .controls {
             position: absolute;
             bottom: 0;
             left: 0;
-            width: 80px;
-            height: 3px;
-            background: linear-gradient(to right, #ff00cc, #3333ff);
-            border-radius: 3px;
-        }
-        
-        .qr-container {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
             display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 25px;
-            padding: 25px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 15px;
-            margin-bottom: 30px;
-        }
-        
-        #qrcode {
-            background: #fff;
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
-        }
-        
-        .qr-label {
-            font-size: 1.3rem;
-            text-align: center;
-            color: #ddd;
-            line-height: 1.6;
-        }
-        
-        .instructions {
-            list-style-type: none;
-            margin: 30px 0;
-            counter-reset: step-counter;
-        }
-        
-        .instructions li {
-            padding: 18px 0 18px 65px;
-            position: relative;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            font-size: 1.2rem;
-            line-height: 1.6;
-        }
-        
-        .instructions li:last-child {
-            border-bottom: none;
-        }
-        
-        .instructions li::before {
-            content: counter(step-counter);
-            counter-increment: step-counter;
-            position: absolute;
-            left: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 45px;
-            height: 45px;
-            background: linear-gradient(135deg, #ff00cc, #3333ff);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
+            flex-wrap: wrap;
             justify-content: center;
-            font-weight: bold;
-            font-size: 1.4rem;
-            color: white;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            gap: 10px;
+            z-index: 3;
+            backdrop-filter: blur(10px);
+            transform: translateY(0);
+            transition: transform 0.3s ease;
         }
-        
-        .ar-container {
-            position: relative;
-            width: 100%;
-            height: 500px;
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
-            background: rgba(0, 0, 0, 0.3);
-            margin-top: 25px;
-        }
-        
-        #ar-scene {
-            width: 100%;
-            height: 100%;
-        }
-        
-        .overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            background: rgba(10, 5, 24, 0.95);
-            z-index: 10;
-            text-align: center;
-            padding: 40px;
-        }
-        
-        .overlay.hidden {
-            display: none;
-        }
-        
-        .overlay h3 {
-            font-size: 2.5rem;
-            margin-bottom: 20px;
-            color: #ff00cc;
-        }
-        
-        .overlay p {
-            font-size: 1.3rem;
-            color: #bbb;
-            max-width: 600px;
-            margin: 15px 0;
-            line-height: 1.6;
-        }
-        
-        .btn {
-            background: linear-gradient(135deg, #ff00cc, #3333ff);
-            color: white;
-            border: none;
-            padding: 18px 40px;
-            font-size: 1.3rem;
-            border-radius: 50px;
-            cursor: pointer;
-            font-weight: bold;
-            margin-top: 30px;
-            transition: all 0.3s ease;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
-            letter-spacing: 1px;
-        }
-        
-        .btn:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.5);
-        }
-        
-        .btn:active {
+
+        .player-container:hover .controls {
             transform: translateY(0);
         }
-        
-        .video-preview {
-            width: 100%;
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
-            margin-top: 25px;
-            position: relative;
-        }
-        
-        .video-preview::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, rgba(255,0,204,0.1), rgba(51,51,255,0.1));
-            pointer-events: none;
-        }
-        
-        .video-preview video {
-            width: 100%;
-            display: block;
-        }
-        
-        .status {
-            padding: 20px;
-            border-radius: 12px;
-            background: rgba(255, 0, 204, 0.1);
-            margin: 25px 0;
-            border: 1px solid rgba(255, 0, 204, 0.3);
+
+        .control-btn {
+            background: rgba(255, 255, 255, 0.15);
+            border: none;
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
             display: flex;
             align-items: center;
-            gap: 15px;
-            font-size: 1.2rem;
+            justify-content: center;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
-        
-        .status i {
-            font-size: 1.8rem;
-            color: #ff00cc;
+
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: scale(1.1);
         }
-        
-        .device-status {
-            margin-top: 20px;
+
+        .control-btn:active {
+            transform: scale(0.95);
+        }
+
+        .zoom-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(to right, #ff7e5f, #feb47b);
+            border-radius: 4px;
+            width: 0%;
+            position: relative;
+        }
+
+        .time-display {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+
+        .device-message {
+            text-align: center;
             padding: 15px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 10px;
+            margin-top: 10px;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .vr-mode-btn {
+            background: linear-gradient(45deg, #ff7e5f, #feb47b);
+            border: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            color: white;
+            font-weight: bold;
             font-size: 1.1rem;
-            color: #ff9900;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
             display: flex;
             align-items: center;
             gap: 10px;
         }
-        
-        footer {
-            text-align: center;
-            padding: 40px 20px;
-            background: rgba(0, 0, 0, 0.3);
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            color: #999;
-            font-size: 1.1rem;
-        }
-        
-        .features {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 30px;
-            margin: 50px 30px;
-            padding: 0 30px;
-        }
-        
-        .feature {
-            background: rgba(255, 255, 255, 0.08);
-            padding: 30px 25px;
-            border-radius: 15px;
-            text-align: center;
-            transition: transform 0.3s ease;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .feature:hover {
-            transform: translateY(-10px);
-            background: rgba(255, 255, 255, 0.12);
-            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.3);
-        }
-        
-        .feature i {
-            font-size: 3rem;
-            margin-bottom: 25px;
-            color: #ff00cc;
-        }
-        
-        .feature h3 {
-            font-size: 1.6rem;
-            margin-bottom: 15px;
-            color: #fff;
-        }
-        
-        .feature p {
-            color: #bbb;
-            line-height: 1.6;
-            font-size: 1.1rem;
-        }
-        
-        .qr-print {
-            text-align: center;
-            padding: 30px;
-        }
-        
-        .qr-print h3 {
-            font-size: 2rem;
-            margin-bottom: 20px;
-            color: #ff00cc;
-        }
-        
-        .qr-print p {
-            font-size: 1.2rem;
-            color: #bbb;
-            max-width: 700px;
-            margin: 0 auto 30px;
-            line-height: 1.6;
-        }
-        
-        .print-btn {
-            background: linear-gradient(135deg, #ff00cc, #3333ff);
-            color: white;
-            border: none;
-            padding: 16px 35px;
-            font-size: 1.2rem;
-            border-radius: 50px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
-            letter-spacing: 1px;
-            margin-top: 20px;
-        }
-        
-        .print-btn:hover {
+
+        .vr-mode-btn:hover {
             transform: translateY(-3px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
         }
-        
-        /* Mobile specific styles */
+
+        .vr-mode-btn:active {
+            transform: translateY(1px);
+        }
+
+        .loading {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 4;
+            gap: 20px;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255, 255, 255, 0.1);
+            border-top: 5px solid #ff7e5f;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
         @media (max-width: 768px) {
-            .content {
-                flex-direction: column;
-                padding: 20px;
-            }
-            
-            .ar-container {
-                height: 400px;
-            }
-            
             h1 {
-                font-size: 2.5rem;
+                font-size: 2.2rem;
             }
             
             .subtitle {
-                font-size: 1.2rem;
+                font-size: 1rem;
             }
             
-            .panel {
-                padding: 20px;
+            .control-btn {
+                width: 45px;
+                height: 45px;
+                font-size: 1rem;
+            }
+            
+            .controls {
+                padding: 10px;
+            }
+            
+            .device-message {
+                display: block;
             }
         }
-        
+
         @media (max-width: 480px) {
             h1 {
-                font-size: 2rem;
+                font-size: 1.8rem;
             }
             
-            .subtitle {
-                font-size: 1.1rem;
-            }
-            
-            .panel-title {
-                font-size: 1.6rem;
-            }
-            
-            .instructions li {
-                padding-left: 50px;
-                font-size: 1.1rem;
-            }
-            
-            .instructions li::before {
+            .control-btn {
                 width: 40px;
                 height: 40px;
-                font-size: 1.2rem;
+                font-size: 0.9rem;
             }
             
-            .ar-container {
-                height: 350px;
-            }
-            
-            .qr-label {
-                font-size: 1.1rem;
+            .vr-mode-btn {
+                padding: 10px 20px;
+                font-size: 1rem;
             }
         }
     </style>
@@ -453,248 +280,215 @@
 <body>
     <div class="container">
         <header>
-            <h1>AR/VR Video Experience</h1>
-            <p class="subtitle">Scan the QR code to place this video in your environment using augmented reality</p>
+            <h1>Immersive AR/VR Video Player</h1>
+            <p class="subtitle">Experience your videos in a simulated AR/VR environment with full playback controls and zoom functionality</p>
         </header>
         
-        <div class="content">
-            <div class="panel">
-                <h2 class="panel-title"><i class="fas fa-qrcode"></i> QR Code</h2>
-                <div class="qr-container">
-                    <div id="qrcode"></div>
-                    <p class="qr-label">Scan this QR code with your smartphone to launch the AR experience</p>
-                </div>
-                
-                <div class="status">
-                    <i class="fas fa-info-circle"></i>
-                    <div>On mobile: Scan the QR code with your camera app to open the AR experience</div>
-                </div>
-                
-                <h2 class="panel-title"><i class="fas fa-video"></i> Video Preview</h2>
-                <div class="video-preview">
-                    <video controls poster="https://img.freepik.com/free-vector/abstract-purple-fluid-background_53876-99031.jpg">
-                        <source src="https://drive.google.com/uc?export=download&id=16r1RnkY0MQRdxG6Bfty_z2d-r53wOM9u" type="video/mp4">
-                        Your browser does not support the video tag.
-                    </video>
-                </div>
+        <div class="player-container">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Loading immersive experience...</p>
             </div>
+            <video id="videoPlayer">
+                <source src="https://drive.google.com/uc?export=download&id=16r1RnkY0MQRdxG6Bfty_z2d-r53wOM9u" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+            <div class="vr-effect"></div>
             
-            <div class="panel">
-                <h2 class="panel-title"><i class="fas fa-vr-cardboard"></i> AR Experience</h2>
+            <div class="controls">
+                <button class="control-btn" id="playBtn" title="Play">
+                    <i class="fas fa-play"></i>
+                </button>
+                <button class="control-btn" id="pauseBtn" title="Pause">
+                    <i class="fas fa-pause"></i>
+                </button>
+                <button class="control-btn" id="stopBtn" title="Stop">
+                    <i class="fas fa-stop"></i>
+                </button>
                 
-                <div class="status">
-                    <i class="fas fa-lightbulb"></i>
-                    <div>After scanning the QR code, follow these steps:</div>
+                <div class="zoom-controls">
+                    <button class="control-btn" id="zoomInBtn" title="Zoom In">
+                        <i class="fas fa-search-plus"></i>
+                    </button>
+                    <button class="control-btn" id="zoomOutBtn" title="Zoom Out">
+                        <i class="fas fa-search-minus"></i>
+                    </button>
                 </div>
                 
-                <ol class="instructions">
-                    <li>Grant camera permissions when prompted</li>
-                    <li>Slowly move your phone to detect surfaces</li>
-                    <li>Tap on any detected surface to place the video</li>
-                    <li>Tap the video to play/pause the content</li>
-                    <li>Move around to view the video from different angles</li>
-                </ol>
+                <button class="control-btn" id="fullscreenBtn" title="Fullscreen">
+                    <i class="fas fa-expand"></i>
+                </button>
                 
-                <div class="ar-container">
-                    <div class="overlay" id="ar-overlay">
-                        <h3>AR Experience Preview</h3>
-                        <p>Scan the QR code with your phone to activate the AR experience</p>
-                        <p><em>On mobile, this area will show your camera feed with the AR video overlay</em></p>
-                        <button class="btn" id="simulate-btn">Simulate AR Experience</button>
-                        
-                        <div class="device-status">
-                            <i class="fas fa-mobile-alt"></i> 
-                            <span id="device-status">Scan QR code with your smartphone to begin</span>
-                        </div>
-                    </div>
-                    <a-scene id="ar-scene" embedded arjs='sourceType: webcam; debugUIEnabled: false;' vr-mode-ui="enabled: false"></a-scene>
+                <div class="progress-container">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+                
+                <div class="time-display">
+                    <span id="currentTime">0:00</span>
+                    <span id="duration">0:00</span>
                 </div>
             </div>
         </div>
         
-        <div class="features">
-            <div class="feature">
-                <i class="fas fa-expand-arrows-alt"></i>
-                <h3>Place Anywhere</h3>
-                <p>Position the video on any surface - tables, walls, floors, or even in mid-air</p>
-            </div>
-            <div class="feature">
-                <i class="fas fa-hand-pointer"></i>
-                <h3>Simple Controls</h3>
-                <p>Tap to play/pause the video with intuitive touch controls</p>
-            </div>
-            <div class="feature">
-                <i class="fas fa-mobile-alt"></i>
-                <h3>No App Required</h3>
-                <p>Works directly in your mobile browser - no downloads needed</p>
-            </div>
-            <div class="feature">
-                <i class="fas fa-bolt"></i>
-                <h3>Real-Time Experience</h3>
-                <p>Seamless video playback integrated with your environment</p>
-            </div>
-        </div>
+        <button class="vr-mode-btn" id="vrModeBtn">
+            <i class="fas fa-vr-cardboard"></i>
+            Enter VR Mode
+        </button>
         
-        <div class="qr-print">
-            <h3>Print QR Code for Newsletter</h3>
-            <p>Print this QR code to include in your physical newsletter. When scanned, it will open this AR experience directly on mobile devices.</p>
-            <div id="printable-qr"></div>
-            <button class="print-btn" onclick="window.print()">Print QR Code</button>
+        <div class="device-message">
+            <i class="fas fa-mobile-alt"></i> Tip: Rotate your device for a more immersive experience
         </div>
-        
-        <footer>
-            <p>AR/VR Video Experience | Compatible with iOS Safari (iOS 13+) and Android Chrome/Firefox</p>
-            <p>For best results, use a modern smartphone with a good camera</p>
-        </footer>
     </div>
 
-    <!-- Font Awesome for icons -->
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
-    
-    <!-- QR Code library -->
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
-    
     <script>
-        // Generate QR Code
         document.addEventListener('DOMContentLoaded', function() {
-            // Get the current URL
-            const arUrl = window.location.href;
+            const video = document.getElementById('videoPlayer');
+            const playBtn = document.getElementById('playBtn');
+            const pauseBtn = document.getElementById('pauseBtn');
+            const stopBtn = document.getElementById('stopBtn');
+            const zoomInBtn = document.getElementById('zoomInBtn');
+            const zoomOutBtn = document.getElementById('zoomOutBtn');
+            const fullscreenBtn = document.getElementById('fullscreenBtn');
+            const progressBar = document.getElementById('progressBar');
+            const currentTimeDisplay = document.getElementById('currentTime');
+            const durationDisplay = document.getElementById('duration');
+            const vrModeBtn = document.getElementById('vrModeBtn');
+            const loading = document.querySelector('.loading');
+            const playerContainer = document.querySelector('.player-container');
             
-            // Generate QR Code for scanning
-            new QRCode(document.getElementById('qrcode'), {
-                text: arUrl,
-                width: 250,
-                height: 250,
-                colorDark: "#000000",
-                colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.H
+            let isFullscreen = false;
+            let zoomLevel = 1;
+            
+            // Initialize video
+            video.controls = false;
+            
+            // Show loading until video can play
+            video.addEventListener('canplay', function() {
+                setTimeout(() => {
+                    loading.style.display = 'none';
+                    durationDisplay.textContent = formatTime(video.duration);
+                }, 1000);
             });
             
-            // Generate printable QR code
-            new QRCode(document.getElementById('printable-qr'), {
-                text: arUrl,
-                width: 300,
-                height: 300,
-                colorDark: "#000000",
-                colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.H
+            // Play/Pause functionality
+            playBtn.addEventListener('click', function() {
+                video.play();
             });
             
-            // Update device status
-            const deviceStatus = document.getElementById('device-status');
-            if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-                deviceStatus.textContent = "You're on a mobile device - scan the QR code to begin";
-                
-                // On mobile, show the AR experience immediately
-                document.getElementById('ar-overlay').classList.add('hidden');
-                initARScene();
-            } else {
-                deviceStatus.textContent = "Scan QR code with your smartphone to begin";
-            }
-            
-            // Simulate AR experience for desktop users
-            document.getElementById('simulate-btn').addEventListener('click', function() {
-                document.getElementById('ar-overlay').classList.add('hidden');
-                initARScene();
+            pauseBtn.addEventListener('click', function() {
+                video.pause();
             });
-        });
-        
-        // Initialize AR scene
-        function initARScene() {
-            const scene = document.getElementById('ar-scene');
-            const overlay = document.getElementById('ar-overlay');
             
-            // Hide the overlay
-            if (overlay) {
-                overlay.classList.add('hidden');
-            }
+            stopBtn.addEventListener('click', function() {
+                video.pause();
+                video.currentTime = 0;
+            });
             
-            // Clear any previous content
-            scene.innerHTML = '';
-            
-            // Create AR scene components
-            scene.innerHTML = `
-                <a-assets>
-                    <video id="videoAsset" autoplay loop crossorigin="anonymous" 
-                           src="https://drive.google.com/uc?export=download&id=16r1RnkY0MQRdxG6Bfty_z2d-r53wOM9u"></video>
-                </a-assets>
-                
-                <a-entity arjs-webxr-plane="minCutoff: 0.1; beta: 0.1"></a-entity>
-                <a-entity camera></a-entity>
-                
-                <a-video id="ar-video" src="#videoAsset" position="0 0 0" rotation="-90 0 0" 
-                         width="1.6" height="0.9" visible="false"></a-video>
-            `;
-            
-            // Add interactivity
-            const videoEl = document.getElementById('ar-video');
-            const camera = document.querySelector('[camera]');
-            
-            // Add click-to-place functionality
-            scene.addEventListener('click', (e) => {
-                if (!videoEl.getAttribute('visible')) {
-                    // Place video at the clicked position
-                    const point = e.detail.intersection.point;
-                    videoEl.setAttribute('position', point);
-                    videoEl.setAttribute('visible', 'true');
-                    
-                    // Orient the video to face the camera
-                    const cameraPos = camera.object3D.position;
-                    const direction = new THREE.Vector3();
-                    direction.subVectors(point, cameraPos).normalize();
-                    const rotation = Math.atan2(direction.x, direction.z);
-                    
-                    videoEl.setAttribute('rotation', {
-                        x: -90,
-                        y: THREE.Math.radToDeg(rotation),
-                        z: 0
-                    });
+            // Zoom functionality
+            zoomInBtn.addEventListener('click', function() {
+                if (zoomLevel < 2) {
+                    zoomLevel += 0.1;
+                    updateZoom();
                 }
             });
             
-            // Add play/pause on video tap
-            videoEl.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const video = document.getElementById('videoAsset');
-                if (video) {
-                    if (video.paused) {
-                        video.play();
-                    } else {
-                        video.pause();
+            zoomOutBtn.addEventListener('click', function() {
+                if (zoomLevel > 0.5) {
+                    zoomLevel -= 0.1;
+                    updateZoom();
+                }
+            });
+            
+            function updateZoom() {
+                video.style.transform = `scale(${zoomLevel})`;
+                video.style.transformOrigin = 'center center';
+            }
+            
+            // Progress bar
+            video.addEventListener('timeupdate', function() {
+                const progress = (video.currentTime / video.duration) * 100;
+                progressBar.style.width = `${progress}%`;
+                currentTimeDisplay.textContent = formatTime(video.currentTime);
+            });
+            
+            progressBar.parentElement.addEventListener('click', function(e) {
+                const rect = this.getBoundingClientRect();
+                const pos = (e.clientX - rect.left) / rect.width;
+                video.currentTime = pos * video.duration;
+            });
+            
+            // Fullscreen
+            fullscreenBtn.addEventListener('click', function() {
+                if (!isFullscreen) {
+                    if (playerContainer.requestFullscreen) {
+                        playerContainer.requestFullscreen();
+                    } else if (playerContainer.mozRequestFullScreen) {
+                        playerContainer.mozRequestFullScreen();
+                    } else if (playerContainer.webkitRequestFullscreen) {
+                        playerContainer.webkitRequestFullscreen();
+                    } else if (playerContainer.msRequestFullscreen) {
+                        playerContainer.msRequestFullscreen();
                     }
+                    isFullscreen = true;
+                    fullscreenBtn.innerHTML = '<i class="fas fa-compress"></i>';
+                } else {
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                    } else if (document.mozCancelFullScreen) {
+                        document.mozCancelFullScreen();
+                    } else if (document.webkitExitFullscreen) {
+                        document.webkitExitFullscreen();
+                    } else if (document.msExitFullscreen) {
+                        document.msExitFullscreen();
+                    }
+                    isFullscreen = false;
+                    fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i>';
                 }
             });
             
-            // Handle errors
-            scene.addEventListener('error', (e) => {
-                console.error('AR Scene Error:', e.detail);
-                if (overlay) {
-                    overlay.classList.remove('hidden');
-                    overlay.innerHTML = `
-                        <h3>Error Loading AR Experience</h3>
-                        <p>${e.detail}</p>
-                        <p>Please try again or check your device compatibility</p>
-                        <button class="btn" onclick="location.reload()">Reload Experience</button>
-                    `;
+            // VR Mode Simulation
+            vrModeBtn.addEventListener('click', function() {
+                playerContainer.classList.toggle('vr-mode');
+                if (playerContainer.classList.contains('vr-mode')) {
+                    vrModeBtn.innerHTML = '<i class="fas fa-times"></i> Exit VR Mode';
+                    document.querySelector('h1').textContent = 'VR Mode Activated';
+                    playerContainer.style.maxWidth = '100%';
+                    playerContainer.style.height = '100vh';
+                    video.style.objectFit = 'cover';
+                    video.play();
+                } else {
+                    vrModeBtn.innerHTML = '<i class="fas fa-vr-cardboard"></i> Enter VR Mode';
+                    document.querySelector('h1').textContent = 'Immersive AR/VR Video Player';
+                    playerContainer.style.maxWidth = '900px';
+                    playerContainer.style.height = '';
+                    video.style.objectFit = 'cover';
                 }
             });
-        }
-        
-        // Print styles
-        window.addEventListener('beforeprint', () => {
-            // Hide non-essential elements for printing
-            document.querySelector('.ar-container').style.display = 'none';
-            document.querySelector('.features').style.display = 'none';
-            document.querySelector('.content').style.flexDirection = 'column';
-            document.querySelector('footer').style.display = 'none';
-        });
-        
-        window.addEventListener('afterprint', () => {
-            // Restore elements after printing
-            document.querySelector('.ar-container').style.display = 'block';
-            document.querySelector('.features').style.display = 'grid';
-            document.querySelector('.content').style.flexDirection = 'row';
-            document.querySelector('footer').style.display = 'block';
+            
+            // Format time (MM:SS)
+            function formatTime(seconds) {
+                const mins = Math.floor(seconds / 60);
+                const secs = Math.floor(seconds % 60);
+                return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+            }
+            
+            // Device orientation for mobile
+            if (window.DeviceOrientationEvent) {
+                window.addEventListener('deviceorientation', function(event) {
+                    // Only apply effect in VR mode
+                    if (playerContainer.classList.contains('vr-mode')) {
+                        const gamma = event.gamma; // left to right
+                        const beta = event.beta; // front back
+                        
+                        if (gamma !== null && beta !== null) {
+                            const rotateX = beta * 0.3;
+                            const rotateY = gamma * 0.3;
+                            
+                            video.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(${zoomLevel})`;
+                        }
+                    }
+                });
+            }
         });
     </script>
 </body>
